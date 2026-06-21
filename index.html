@@ -53,11 +53,10 @@
             font-size: 24px;
             font-weight: bold;
             color: #ff00ff;
-            text-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
         }
 
         #open-shop-btn {
-            background: linear-gradient(45deg, #00ffcc, #00b3ff);
+            background: #00ccaa;
             color: #0f0f13;
             border: none;
             padding: 15px 30px;
@@ -65,13 +64,55 @@
             font-weight: bold;
             border-radius: 12px;
             cursor: pointer;
-            box-shadow: 0 0 15px rgba(0, 255, 204, 0.4);
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        #shop-indicator {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 14px;
+            height: 14px;
+            background-color: #ff0044;
+            border-radius: 50%;
+            display: none;
+        }
+
+        #shop-indicator.active {
+            display: block;
+            animation: pulse-shop 1s infinite alternate;
+        }
+
+        @keyframes pulse-shop {
+            0% {
+                transform: scale(1);
+            }
+
+            100% {
+                transform: scale(1.3);
+            }
+        }
+
+        .item-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background-color: #ff0044;
+            border-radius: 50%;
+            margin-left: 8px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            vertical-align: middle;
+        }
+
+        .item-indicator.active {
+            opacity: 1;
+            animation: pulse-shop 1s infinite alternate;
         }
 
         #open-shop-btn:hover {
             transform: scale(1.05);
-            box-shadow: 0 0 25px rgba(0, 255, 204, 0.6);
         }
 
         #shop-modal {
@@ -104,7 +145,6 @@
             max-width: 400px;
             box-sizing: border-box;
             padding: 30px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
             transform: scale(1);
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
@@ -126,7 +166,6 @@
             margin: 0;
             color: #00ffcc;
             font-size: 24px;
-            text-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
             letter-spacing: 2px;
         }
 
@@ -168,7 +207,6 @@
         .upgrade-btn:hover {
             background: rgba(255, 255, 255, 0.1);
             border-color: #00ffcc;
-            box-shadow: 0 0 15px rgba(0, 255, 204, 0.2);
         }
 
         .upgrade-btn:active {
@@ -201,7 +239,6 @@
             color: #ff00ff;
             font-weight: bold;
             font-size: 18px;
-            text-shadow: 0 0 8px rgba(255, 0, 255, 0.4);
         }
 
         #leaderboard {
@@ -223,7 +260,6 @@
             color: #00ffcc;
             text-align: center;
             letter-spacing: 1px;
-            text-shadow: 0 0 5px rgba(0, 255, 204, 0.5);
         }
 
         #leaderboard-list {
@@ -259,6 +295,84 @@
         .lb-score {
             color: #ff00ff;
             font-weight: bold;
+        }
+
+        #main-menu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(10, 10, 15, 0.85);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s;
+        }
+
+        #main-menu.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .menu-content {
+            text-align: center;
+            background: rgba(30, 30, 45, 0.85);
+            padding: 50px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .menu-content h1 {
+            color: #00ffcc;
+            font-size: 48px;
+            margin-top: 0;
+            margin-bottom: 30px;
+            letter-spacing: 5px;
+        }
+
+        #player-name-input {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 25px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(0, 255, 204, 0.5);
+            border-radius: 10px;
+            color: white;
+            font-size: 18px;
+            text-align: center;
+            outline: none;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        #player-name-input:focus {
+            border-color: #00ffcc;
+        }
+
+        #play-btn {
+            background: #cc0033;
+            color: white;
+            border: none;
+            padding: 15px 50px;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            width: 100%;
+        }
+
+        #play-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .hidden {
+            display: none !important;
         }
 
         @media (max-width: 600px) {
@@ -301,7 +415,15 @@
 
     <canvas id="gameCanvas"></canvas>
 
-    <div id="hud">
+    <div id="main-menu" class="active">
+        <div class="menu-content">
+            <h1>NEON VOID</h1>
+            <input type="text" id="player-name-input" placeholder="Enter Nickname" maxlength="16">
+            <button id="play-btn">PLAY</button>
+        </div>
+    </div>
+
+    <div id="hud" class="hidden">
         <div class="hud-stat">
             <span class="hud-label">ENERGY</span>
             <span class="hud-value" id="hud-energy">0</span>
@@ -310,10 +432,10 @@
             <span class="hud-label">MULTIPLIER</span>
             <span class="hud-value" id="hud-mult">x1</span>
         </div>
-        <button id="open-shop-btn">SHOP</button>
+        <button id="open-shop-btn"><span id="shop-btn-text">SHOP</span><span id="shop-indicator"></span></button>
     </div>
 
-    <div id="leaderboard">
+    <div id="leaderboard" class="hidden">
         <h3>TOP 10</h3>
         <ul id="leaderboard-list">
         </ul>
@@ -328,7 +450,7 @@
 
             <button class="upgrade-btn" id="btn-speed">
                 <div class="btn-info">
-                    <span class="btn-title">Movement Speed</span>
+                    <span class="btn-title">Movement Speed<span class="item-indicator" id="ind-speed"></span></span>
                     <span class="btn-lvl">Lvl <span id="lvl-speed">1</span></span>
                 </div>
                 <span class="btn-cost" id="cost-speed">10</span>
@@ -336,7 +458,7 @@
 
             <button class="upgrade-btn" id="btn-magnet">
                 <div class="btn-info">
-                    <span class="btn-title">Magnet Radius</span>
+                    <span class="btn-title">Magnet Radius<span class="item-indicator" id="ind-magnet"></span></span>
                     <span class="btn-lvl">Lvl <span id="lvl-magnet">1</span></span>
                 </div>
                 <span class="btn-cost" id="cost-magnet">25</span>
@@ -344,7 +466,7 @@
 
             <button class="upgrade-btn" id="btn-mult">
                 <div class="btn-info">
-                    <span class="btn-title">Energy Multiplier</span>
+                    <span class="btn-title">Energy Multiplier<span class="item-indicator" id="ind-mult"></span></span>
                     <span class="btn-lvl">Lvl <span id="lvl-mult">1</span></span>
                 </div>
                 <span class="btn-cost" id="cost-mult">100</span>
@@ -362,7 +484,7 @@
             let channel = null;
             const playerId = crypto.randomUUID();
             const playerColor = `hsl(${Math.random() * 360}, 100%, 60%)`;
-            const playerName = `Player${Math.floor(Math.random() * 9000) + 1000}`;
+            let playerName = `Player${Math.floor(Math.random() * 9000) + 1000}`;
             const otherPlayers = {};
 
             if (SUPABASE_URL !== "YOUR_SUPABASE_URL_HERE") {
@@ -385,6 +507,10 @@
                         if (activeBuffs.immune > 0) return;
                         die();
                     }
+                }).on('broadcast', { event: 'death_fx' }, ({ payload }) => {
+                    for (let i = 0; i < 10; i++) {
+                        createExplosion(payload.x, payload.y, payload.color);
+                    }
                 }).on('broadcast', { event: 'pos' }, ({ payload }) => {
                     if (payload.id === playerId) return;
 
@@ -398,6 +524,7 @@
                         otherPlayers[payload.id].magnet = payload.magnet;
                         otherPlayers[payload.id].angle = payload.angle;
                         otherPlayers[payload.id].starve = payload.starve;
+                        otherPlayers[payload.id].starveMax = payload.starveMax;
                     } else {
                         otherPlayers[payload.id] = {
                             x: payload.x, y: payload.y,
@@ -408,7 +535,8 @@
                             energy: payload.energy,
                             magnet: payload.magnet,
                             angle: payload.angle,
-                            starve: payload.starve
+                            starve: payload.starve,
+                            starveMax: payload.starveMax
                         };
                     }
                 }).on('broadcast', { event: 'spawn_orb' }, ({ payload }) => {
@@ -444,7 +572,8 @@
                     });
                 }).subscribe(async (status) => {
                     if (status === 'SUBSCRIBED') {
-                        await channel.track({ online_at: new Date().toISOString() });
+                        // Track will be called when user hits PLAY
+
                         channel.send({
                             type: 'broadcast',
                             event: 'request_sync',
@@ -535,7 +664,7 @@
                 radius: 15,
                 speed: 0.01,     // Interpolation speed
                 magnet: isMobile ? 40 : 10,      // Larger magnet radius on mobile
-                mult: 1          // Energy multiplier
+                mult: 10          // Energy multiplier
             };
 
             const activeBuffs = {
@@ -567,14 +696,35 @@
             const texts = [];
 
             let isDead = false;
+            let inMenu = true;
             let respawnTimer = 0;
             let starveTimer = 300; // 5 seconds at 60fps
-            const STARVE_MAX = 300;
+            function getStarveMax() {
+                if (upgrades.speed.lvl >= 30 || upgrades.magnet.lvl >= 30 || upgrades.mult.lvl >= 30) {
+                    return 60; // 1 second at 60fps
+                }
+                if (upgrades.speed.lvl >= 25 || upgrades.magnet.lvl >= 25 || upgrades.mult.lvl >= 25) {
+                    return 90; // 1.5 seconds at 60fps
+                }
+                if (upgrades.speed.lvl >= 15 || upgrades.magnet.lvl >= 15 || upgrades.mult.lvl >= 15) {
+                    return 180; // 3 seconds at 60fps
+                }
+                return 300; // 5 seconds at 60fps
+            }
 
             function die() {
                 if (isDead) return;
                 isDead = true;
                 respawnTimer = 3;
+
+                // Create massive explosion locally
+                for (let i = 0; i < 10; i++) {
+                    createExplosion(player.x, player.y, playerColor);
+                }
+
+                if (channel) {
+                    channel.send({ type: 'broadcast', event: 'death_fx', payload: { x: player.x, y: player.y, color: playerColor } });
+                }
 
                 // Drop energy orbs at death position
                 const dropCount = Math.min(Math.floor(energy / 2), 50);
@@ -606,7 +756,7 @@
                 activeBuffs.speed = 0;
                 activeBuffs.magnet = 0;
                 activeBuffs.immune = 0;
-                starveTimer = STARVE_MAX;
+                starveTimer = getStarveMax();
 
                 updateUI();
                 updateLeaderboard();
@@ -618,7 +768,9 @@
                         isDead = false;
                         player.x = Math.random() * worldSize;
                         player.y = Math.random() * worldSize;
-                        starveTimer = STARVE_MAX;
+                        player.radius = 0;
+                        window.spawnScale = 0; // Trigger spawn grow animation
+                        starveTimer = getStarveMax();
                     }
                 }, 1000);
             }
@@ -631,6 +783,7 @@
                     upg.lvl++;
                     upg.effect();
                     upg.cost = Math.floor(upg.cost * upg.scale);
+                    if (starveTimer > getStarveMax()) starveTimer = getStarveMax();
                     updateUI();
                 }
             }
@@ -659,6 +812,8 @@
                 document.getElementById('hud-energy').innerText = Math.floor(energy);
                 document.getElementById('hud-mult').innerText = `x${player.mult}`;
 
+                let anyAvailable = false;
+
                 for (let key in upgrades) {
                     const upg = upgrades[key];
                     const btn = document.getElementById(`btn-${key}`);
@@ -667,9 +822,19 @@
 
                     if (energy < upg.cost || upg.lvl >= upg.max) {
                         btn.classList.add('disabled');
+                        document.getElementById(`ind-${key}`).classList.remove('active');
                     } else {
                         btn.classList.remove('disabled');
+                        document.getElementById(`ind-${key}`).classList.add('active');
+                        anyAvailable = true;
                     }
+                }
+
+                const indicator = document.getElementById('shop-indicator');
+                if (anyAvailable) {
+                    indicator.classList.add('active');
+                } else {
+                    indicator.classList.remove('active');
                 }
             }
 
@@ -772,7 +937,7 @@
                 ctx.fillStyle = '#0f0f13';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                if (!isDead) {
+                if (!isDead && !inMenu) {
                     if (activeBuffs.speed > 0) activeBuffs.speed--;
                     if (activeBuffs.magnet > 0) activeBuffs.magnet--;
                     if (activeBuffs.immune > 0) activeBuffs.immune--;
@@ -780,9 +945,9 @@
 
                 if (activeBuffs.shopCooldown > 0) {
                     activeBuffs.shopCooldown--;
-                    document.getElementById('open-shop-btn').innerText = `Shop Cooldown (${Math.ceil(activeBuffs.shopCooldown / 60)}s)`;
+                    document.getElementById('shop-btn-text').innerText = `Shop Cooldown (${Math.ceil(activeBuffs.shopCooldown / 60)}s)`;
                 } else {
-                    document.getElementById('open-shop-btn').innerText = `Open Shop`;
+                    document.getElementById('shop-btn-text').innerText = `SHOP`;
                 }
 
                 effectiveSpeed = player.speed + (activeBuffs.speed > 0 ? 0.015 : 0);
@@ -837,9 +1002,14 @@
                     if (orbs.length < 300) spawnOrb(true);
                 }
 
-                if (!isDead) {
+                if (!isDead && !inMenu) {
+                    if (typeof spawnScale === 'undefined') window.spawnScale = 1;
+                    if (spawnScale < 1) {
+                        spawnScale += 0.05;
+                        if (spawnScale > 1) spawnScale = 1;
+                    }
                     // Dynamic Radius based on Energy
-                    player.radius = 15 + Math.sqrt(energy) * 1.5;
+                    player.radius = (15 + Math.sqrt(energy) * 1.5) * spawnScale;
 
                     // Move Player smoothly towards mouse world coordinates, but cap maximum speed
                     if (isMobile) {
@@ -897,10 +1067,7 @@
                     ctx.beginPath();
                     ctx.arc(player.x - camera.x, player.y - camera.y, player.radius, 0, Math.PI * 2);
                     ctx.fillStyle = playerColor;
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = playerColor;
                     ctx.fill();
-                    ctx.shadowBlur = 0; // Reset shadow
 
                     // Draw Player Arrow
                     if (player.angle !== undefined) {
@@ -927,7 +1094,7 @@
                     }
 
                     // Draw Starvation Pie Timer on Player
-                    const starveRatio = starveTimer / STARVE_MAX;
+                    const starveRatio = starveTimer / getStarveMax();
                     let timerColor;
                     if (starveRatio > 0.5) timerColor = `rgba(0, 255, 100, 0.6)`;
                     else if (starveRatio > 0.25) timerColor = `rgba(255, 200, 0, 0.7)`;
@@ -954,7 +1121,7 @@
                         channel.send({
                             type: 'broadcast',
                             event: 'pos',
-                            payload: { id: playerId, x: player.x, y: player.y, radius: player.radius, color: playerColor, name: playerName, energy: energy, magnet: effectiveMagnet, angle: player.angle, starve: starveTimer }
+                            payload: { id: playerId, x: player.x, y: player.y, radius: player.radius, color: playerColor, name: playerName, energy: energy, magnet: effectiveMagnet, angle: player.angle, starve: starveTimer, starveMax: getStarveMax() }
                         });
                         lastBroadcast = now;
                     }
@@ -966,6 +1133,11 @@
                     if (starveTimer <= 0) {
                         die();
                     }
+                } else if (inMenu) {
+                    camera.x += 1;
+                    camera.y += 1;
+                    if (camera.x > worldSize) camera.x = 0;
+                    if (camera.y > worldSize) camera.y = 0;
                 }
 
                 if (frameCount % 30 === 0) {
@@ -979,7 +1151,7 @@
                     p.y += (p.targetY - p.y) * 0.2;
 
                     // PvP Collision Check
-                    if (!isDead) {
+                    if (!isDead && !inMenu) {
                         let dx = p.x - player.x;
                         let dy = p.y - player.y;
                         let dist = Math.sqrt(dx * dx + dy * dy);
@@ -1015,10 +1187,7 @@
                     ctx.beginPath();
                     ctx.arc(p.x - camera.x, p.y - camera.y, p.radius, 0, Math.PI * 2);
                     ctx.fillStyle = p.color;
-                    ctx.shadowBlur = 15;
-                    ctx.shadowColor = p.color;
                     ctx.fill();
-                    ctx.shadowBlur = 0;
 
                     // Render remote player arrow
                     if (p.angle !== undefined) {
@@ -1045,7 +1214,7 @@
 
                     // Render remote player starvation pie timer
                     if (p.starve !== undefined) {
-                        const rStarveRatio = p.starve / STARVE_MAX;
+                        const rStarveRatio = p.starve / (p.starveMax || 300);
                         let rTimerColor;
                         if (rStarveRatio > 0.5) rTimerColor = `rgba(0, 255, 100, 0.6)`;
                         else if (rStarveRatio > 0.25) rTimerColor = `rgba(255, 200, 0, 0.7)`;
@@ -1078,7 +1247,7 @@
                     }
 
                     // Magnet logic
-                    if (!isDead) {
+                    if (!isDead && !inMenu) {
                         if (dist < effectiveMagnet) {
                             orb.x += dx * 0.1; // Pull towards player
                             orb.y += dy * 0.1;
@@ -1100,7 +1269,14 @@
                                 energy += (orb.value || 1) * player.mult;
                             }
 
-                            starveTimer = STARVE_MAX; // Reset starvation timer on eating any orb
+                            let maxLife = getStarveMax();
+                            if (upgrades.speed.lvl >= 20 || upgrades.magnet.lvl >= 20 || upgrades.mult.lvl >= 20) {
+                                let addAmount = orb.type === 'big_energy' ? 15 : 5; // Big orb adds 1.5s, regular adds 0.2s
+                                starveTimer += addAmount;
+                                if (starveTimer > maxLife) starveTimer = maxLife;
+                            } else {
+                                starveTimer = maxLife; // Reset starvation timer on eating any orb
+                            }
 
                             createExplosion(orb.x, orb.y, orb.color);
 
@@ -1122,10 +1298,7 @@
                     ctx.beginPath();
                     ctx.arc(orb.x - camera.x, orb.y - camera.y, orb.radius, 0, Math.PI * 2);
                     ctx.fillStyle = orb.color;
-                    ctx.shadowBlur = 10;
-                    ctx.shadowColor = orb.color;
                     ctx.fill();
-                    ctx.shadowBlur = 0;
                 }
 
                 // Update and Draw Particles
@@ -1183,7 +1356,23 @@
                 requestAnimationFrame(loop);
             }
 
+            document.getElementById('player-name-input').value = playerName;
+
+            document.getElementById('play-btn').addEventListener('click', () => {
+                const nameInput = document.getElementById('player-name-input').value.trim();
+                if (nameInput) playerName = nameInput;
+
+                document.getElementById('main-menu').classList.remove('active');
+                document.getElementById('hud').classList.remove('hidden');
+                document.getElementById('leaderboard').classList.remove('hidden');
+
+                inMenu = false;
+
+                if (channel) channel.track({ online_at: new Date().toISOString() });
+            });
+
             // Start game
+            window.spawnScale = 0;
             for (let i = 0; i < 50; i++) spawnOrb(); // Initial orbs
             updateUI();
             loop();
