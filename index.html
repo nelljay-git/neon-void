@@ -382,6 +382,7 @@
                     delete otherPlayers[key];
                 }).on('broadcast', { event: 'kill' }, ({ payload }) => {
                     if (payload.victim === playerId && !killImmunity.has(payload.killer)) {
+                        if (activeBuffs.immune > 0) return;
                         die();
                     }
                 }).on('broadcast', { event: 'pos' }, ({ payload }) => {
@@ -537,7 +538,9 @@
 
             const activeBuffs = {
                 speed: 0,
-                magnet: 0
+                magnet: 0,
+                immune: 0,
+                shopCooldown: 0
             };
 
             // Camera
@@ -576,6 +579,7 @@
                 upgrades.mult.lvl = 1; upgrades.mult.cost = 100; player.mult = 1;
                 activeBuffs.speed = 0;
                 activeBuffs.magnet = 0;
+                activeBuffs.immune = 0;
 
                 updateUI();
                 updateLeaderboard();
@@ -605,6 +609,14 @@
 
             function toggleShop() {
                 const modal = document.getElementById('shop-modal');
+                const isOpening = modal.classList.contains('hidden');
+
+                if (isOpening) {
+                    if (activeBuffs.shopCooldown > 0) return;
+                    activeBuffs.immune = 300; // 5 seconds at 60fps
+                } else {
+                    activeBuffs.shopCooldown = 600; // 10 seconds at 60fps
+                }
                 modal.classList.toggle('hidden');
             }
 
@@ -735,6 +747,14 @@
                 if (!isDead) {
                     if (activeBuffs.speed > 0) activeBuffs.speed--;
                     if (activeBuffs.magnet > 0) activeBuffs.magnet--;
+                    if (activeBuffs.immune > 0) activeBuffs.immune--;
+                }
+
+                if (activeBuffs.shopCooldown > 0) {
+                    activeBuffs.shopCooldown--;
+                    document.getElementById('open-shop-btn').innerText = `Shop Cooldown (${Math.ceil(activeBuffs.shopCooldown / 60)}s)`;
+                } else {
+                    document.getElementById('open-shop-btn').innerText = `Open Shop`;
                 }
 
                 effectiveSpeed = player.speed + (activeBuffs.speed > 0 ? 0.015 : 0);
@@ -867,6 +887,15 @@
                         ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
                         ctx.fill();
                         ctx.restore();
+                    }
+
+                    // Draw Player Immunity Indicator
+                    if (activeBuffs.immune > 0) {
+                        ctx.beginPath();
+                        ctx.arc(player.x - camera.x, player.y - camera.y, player.radius + 8, 0, Math.PI * 2);
+                        ctx.strokeStyle = `rgba(255, 255, 255, ${0.5 + 0.5 * Math.sin(frameCount * 0.2)})`; // Pulsing effect
+                        ctx.lineWidth = 3;
+                        ctx.stroke();
                     }
 
                     // Draw local player name
