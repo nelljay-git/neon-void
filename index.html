@@ -270,6 +270,13 @@
                 gap: 10px;
             }
 
+            #leaderboard {
+                top: 70px;
+                right: 10px;
+                width: 150px;
+                padding: 10px;
+            }
+
             .hud-stat {
                 padding: 8px 12px;
             }
@@ -429,22 +436,51 @@
             });
 
             // Mouse/Touch tracking
+            let joystickActive = false;
+            let joystickOrigin = { x: 0, y: 0 };
+            let joystickDelta = { x: 0, y: 0 };
+
             const updateTarget = (e) => {
-                if (e.type === 'touchstart' || e.type === 'touchmove') {
-                    e.preventDefault();
-                }
-                if (e.touches && e.touches.length > 0) {
-                    mouse.x = e.touches[0].clientX;
-                    mouse.y = e.touches[0].clientY;
-                } else if (e.clientX !== undefined) {
+                if (e.clientX !== undefined) {
                     mouse.x = e.clientX;
                     mouse.y = e.clientY;
                 }
             };
 
             canvas.addEventListener('mousemove', updateTarget);
-            canvas.addEventListener('touchstart', updateTarget, { passive: false });
-            canvas.addEventListener('touchmove', updateTarget, { passive: false });
+
+            canvas.addEventListener('touchstart', (e) => {
+                e.preventDefault();
+                if (e.touches && e.touches.length > 0) {
+                    joystickActive = true;
+                    joystickOrigin.x = e.touches[0].clientX;
+                    joystickOrigin.y = e.touches[0].clientY;
+                    joystickDelta.x = 0;
+                    joystickDelta.y = 0;
+                }
+            }, { passive: false });
+
+            canvas.addEventListener('touchmove', (e) => {
+                e.preventDefault();
+                if (joystickActive && e.touches && e.touches.length > 0) {
+                    joystickDelta.x = e.touches[0].clientX - joystickOrigin.x;
+                    joystickDelta.y = e.touches[0].clientY - joystickOrigin.y;
+                }
+            }, { passive: false });
+
+            canvas.addEventListener('touchend', (e) => {
+                e.preventDefault();
+                joystickActive = false;
+                joystickDelta.x = 0;
+                joystickDelta.y = 0;
+            }, { passive: false });
+            
+            canvas.addEventListener('touchcancel', (e) => {
+                e.preventDefault();
+                joystickActive = false;
+                joystickDelta.x = 0;
+                joystickDelta.y = 0;
+            }, { passive: false });
 
             // World Map Size
             const worldSize = 1000;
@@ -606,26 +642,46 @@
             }
 
             // Main Game Loop
+            let currentZoom = 1;
+
             function loop() {
                 // Clear screen with solid background for infinite canvas
                 ctx.fillStyle = '#0f0f13';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+                let screenMin = Math.min(canvas.width, canvas.height);
+                let targetZoom = Math.min(1.0, (screenMin * 0.4) / player.magnet);
+                if (targetZoom > 1.5) targetZoom = 1.5;
+                currentZoom += (targetZoom - currentZoom) * 0.05;
+
+                ctx.save();
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.scale(currentZoom, currentZoom);
+                ctx.translate(-canvas.width / 2, -canvas.height / 2);
+
                 // Draw grid to show movement
                 ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
                 ctx.lineWidth = 1;
                 const gridSize = 50;
+                
+                const startX = canvas.width / 2 - (canvas.width / 2) / currentZoom - gridSize;
+                const endX = canvas.width / 2 + (canvas.width / 2) / currentZoom + gridSize;
+                const startY = canvas.height / 2 - (canvas.height / 2) / currentZoom - gridSize;
+                const endY = canvas.height / 2 + (canvas.height / 2) / currentZoom + gridSize;
+
                 const offsetX = - (camera.x % gridSize);
                 const offsetY = - (camera.y % gridSize);
 
                 ctx.beginPath();
-                for (let x = offsetX; x < canvas.width; x += gridSize) {
-                    ctx.moveTo(x, 0);
-                    ctx.lineTo(x, canvas.height);
+                let firstX = Math.floor(startX / gridSize) * gridSize + offsetX;
+                for (let x = firstX; x < endX; x += gridSize) {
+                    ctx.moveTo(x, startY);
+                    ctx.lineTo(x, endY);
                 }
-                for (let y = offsetY; y < canvas.height; y += gridSize) {
-                    ctx.moveTo(0, y);
-                    ctx.lineTo(canvas.width, y);
+                let firstY = Math.floor(startY / gridSize) * gridSize + offsetY;
+                for (let y = firstY; y < endY; y += gridSize) {
+                    ctx.moveTo(startX, y);
+                    ctx.lineTo(endX, y);
                 }
                 ctx.stroke();
 
@@ -646,22 +702,39 @@
                     player.radius = 15 + Math.sqrt(energy) * 1.5;
 
                     // Move Player smoothly towards mouse world coordinates, but cap maximum speed
-                    let targetX = camera.x + mouse.x;
-                    let targetY = camera.y + mouse.y;
+                    if (isMobile) {
+                        if (joystickActive) {
+                            let dist = Math.sqrt(joystickDelta.x * joystickDelta.x + joystickDelta.y * joystickDelta.y);
+                            const maxJoyDist = 50; // max joystick pull
+                            let moveDist = Math.min(dist, maxJoyDist);
+                            
+                            if (dist > 0) {
+                                let dirX = joystickDelta.x / dist;
+                                let dirY = joystickDelta.y / dist;
+                                
+                                const maxDist = 200;
+                                let dx = dirX * maxDist * (moveDist / maxJoyDist);
+                                let dy = dirY * maxDist * (moveDist / maxJoyDist);
+                                
+                                player.x += dx * player.speed;
+                                player.y += dy * player.speed;
+                            }
+                        }
+                    } else {
+                        let dx = (mouse.x - canvas.width / 2) / currentZoom;
+                        let dy = (mouse.y - canvas.height / 2) / currentZoom;
+                        let dist = Math.sqrt(dx * dx + dy * dy);
 
-                    let dx = targetX - player.x;
-                    let dy = targetY - player.y;
-                    let dist = Math.sqrt(dx * dx + dy * dy);
+                        // Cap the distance to limit maximum velocity
+                        const maxDist = 200;
+                        if (dist > maxDist) {
+                            dx = (dx / dist) * maxDist;
+                            dy = (dy / dist) * maxDist;
+                        }
 
-                    // Cap the distance to limit maximum velocity
-                    const maxDist = 200;
-                    if (dist > maxDist) {
-                        dx = (dx / dist) * maxDist;
-                        dy = (dy / dist) * maxDist;
+                        player.x += dx * player.speed;
+                        player.y += dy * player.speed;
                     }
-
-                    player.x += dx * player.speed;
-                    player.y += dy * player.speed;
 
                     // Clamp player to world bounds
                     player.x = Math.max(player.radius, Math.min(player.x, worldSize - player.radius));
@@ -703,16 +776,6 @@
                         });
                         lastBroadcast = now;
                     }
-                } else {
-                    // Dead State UI
-                    ctx.fillStyle = 'rgba(255, 0, 85, 0.8)';
-                    ctx.font = 'bold 48px "Segoe UI"';
-                    ctx.textAlign = 'center';
-                    ctx.fillText("YOU DIED", canvas.width / 2, canvas.height / 2 - 20);
-
-                    ctx.fillStyle = '#fff';
-                    ctx.font = '24px "Segoe UI"';
-                    ctx.fillText(`Respawning in ${respawnTimer}...`, canvas.width / 2, canvas.height / 2 + 20);
                 }
 
                 if (frameCount % 30 === 0) {
@@ -778,7 +841,8 @@
                     let dist = Math.sqrt(dx * dx + dy * dy);
 
                     // Cull distant orbs
-                    if (dist > Math.max(canvas.width, canvas.height) + 500) {
+                    const maxDim = Math.max(canvas.width, canvas.height) / currentZoom;
+                    if (dist > maxDim + 500) {
                         orbs.splice(i, 1);
                         continue;
                     }
@@ -844,6 +908,19 @@
                     ctx.font = '14px Arial';
                     ctx.fillText(t.text, t.x - camera.x, t.y - camera.y);
                     ctx.globalAlpha = 1.0;
+                }
+
+                ctx.restore();
+
+                if (isDead) {
+                    ctx.fillStyle = 'rgba(255, 0, 85, 0.8)';
+                    ctx.font = 'bold 48px "Segoe UI"';
+                    ctx.textAlign = 'center';
+                    ctx.fillText("YOU DIED", canvas.width / 2, canvas.height / 2 - 20);
+
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '24px "Segoe UI"';
+                    ctx.fillText(`Respawning in ${respawnTimer}...`, canvas.width / 2, canvas.height / 2 + 20);
                 }
 
                 // Keep UI updated for button states
