@@ -394,6 +394,8 @@
                         otherPlayers[payload.id].color = payload.color;
                         otherPlayers[payload.id].name = payload.name;
                         otherPlayers[payload.id].energy = payload.energy;
+                        otherPlayers[payload.id].magnet = payload.magnet;
+                        otherPlayers[payload.id].angle = payload.angle;
                     } else {
                         otherPlayers[payload.id] = {
                             x: payload.x, y: payload.y,
@@ -401,7 +403,9 @@
                             radius: payload.radius,
                             color: payload.color,
                             name: payload.name,
-                            energy: payload.energy
+                            energy: payload.energy,
+                            magnet: payload.magnet,
+                            angle: payload.angle
                         };
                     }
                 }).on('broadcast', { event: 'spawn_orb' }, ({ payload }) => {
@@ -766,6 +770,7 @@
                                 
                                 player.x += dx * player.speed;
                                 player.y += dy * player.speed;
+                                if (dist > 0) player.angle = Math.atan2(dy, dx);
                             }
                         }
                     } else {
@@ -782,6 +787,7 @@
 
                         player.x += dx * player.speed;
                         player.y += dy * player.speed;
+                        if (dist > 0) player.angle = Math.atan2(dy, dx);
                     }
 
                     // Clamp player to world bounds
@@ -808,6 +814,21 @@
                     ctx.fill();
                     ctx.shadowBlur = 0; // Reset shadow
 
+                    // Draw Player Arrow
+                    if (player.angle !== undefined) {
+                        ctx.save();
+                        ctx.translate(player.x - camera.x, player.y - camera.y);
+                        ctx.rotate(player.angle);
+                        ctx.beginPath();
+                        ctx.moveTo(player.radius + 10, 0);
+                        ctx.lineTo(player.radius - 2, -6);
+                        ctx.lineTo(player.radius - 2, 6);
+                        ctx.closePath();
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                        ctx.fill();
+                        ctx.restore();
+                    }
+
                     // Draw local player name
                     ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
                     ctx.font = 'bold 12px "Segoe UI"';
@@ -820,7 +841,7 @@
                         channel.send({
                             type: 'broadcast',
                             event: 'pos',
-                            payload: { id: playerId, x: player.x, y: player.y, radius: player.radius, color: playerColor, name: playerName, energy: energy }
+                            payload: { id: playerId, x: player.x, y: player.y, radius: player.radius, color: playerColor, name: playerName, energy: energy, magnet: player.magnet, angle: player.angle }
                         });
                         lastBroadcast = now;
                     }
@@ -862,6 +883,13 @@
                         }
                     }
 
+                    // Render remote player magnet
+                    ctx.beginPath();
+                    ctx.arc(p.x - camera.x, p.y - camera.y, p.magnet || 10, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(0, 255, 204, 0.1)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
                     // Render remote player
                     ctx.beginPath();
                     ctx.arc(p.x - camera.x, p.y - camera.y, p.radius, 0, Math.PI * 2);
@@ -870,6 +898,21 @@
                     ctx.shadowColor = p.color;
                     ctx.fill();
                     ctx.shadowBlur = 0;
+
+                    // Render remote player arrow
+                    if (p.angle !== undefined) {
+                        ctx.save();
+                        ctx.translate(p.x - camera.x, p.y - camera.y);
+                        ctx.rotate(p.angle);
+                        ctx.beginPath();
+                        ctx.moveTo(p.radius + 10, 0);
+                        ctx.lineTo(p.radius - 2, -6);
+                        ctx.lineTo(p.radius - 2, 6);
+                        ctx.closePath();
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                        ctx.fill();
+                        ctx.restore();
+                    }
 
                     // Render remote player name
                     if (p.name) {
