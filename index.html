@@ -397,6 +397,7 @@
                         otherPlayers[payload.id].energy = payload.energy;
                         otherPlayers[payload.id].magnet = payload.magnet;
                         otherPlayers[payload.id].angle = payload.angle;
+                        otherPlayers[payload.id].starve = payload.starve;
                     } else {
                         otherPlayers[payload.id] = {
                             x: payload.x, y: payload.y,
@@ -406,7 +407,8 @@
                             name: payload.name,
                             energy: payload.energy,
                             magnet: payload.magnet,
-                            angle: payload.angle
+                            angle: payload.angle,
+                            starve: payload.starve
                         };
                     }
                 }).on('broadcast', { event: 'spawn_orb' }, ({ payload }) => {
@@ -566,11 +568,35 @@
 
             let isDead = false;
             let respawnTimer = 0;
+            let starveTimer = 600; // 10 seconds at 60fps
+            const STARVE_MAX = 600;
 
             function die() {
                 if (isDead) return;
                 isDead = true;
                 respawnTimer = 3;
+
+                // Drop energy orbs at death position
+                const dropCount = Math.min(Math.floor(energy / 2), 50);
+                const energyPerOrb = dropCount > 0 ? Math.floor(energy / dropCount) : 0;
+                for (let i = 0; i < dropCount; i++) {
+                    const angle = (Math.PI * 2 / dropCount) * i;
+                    const dist = 20 + Math.random() * 60;
+                    const dropOrb = {
+                        id: crypto.randomUUID(),
+                        x: player.x + Math.cos(angle) * dist,
+                        y: player.y + Math.sin(angle) * dist,
+                        radius: Math.min(4 + energyPerOrb * 0.3, 14),
+                        color: '#ff4444',
+                        type: 'death_drop',
+                        value: energyPerOrb
+                    };
+                    orbs.push(dropOrb);
+                    if (channel) {
+                        channel.send({ type: 'broadcast', event: 'spawn_orb', payload: dropOrb });
+                    }
+                }
+
                 energy = 0;
 
                 // Reset Upgrades
@@ -580,6 +606,7 @@
                 activeBuffs.speed = 0;
                 activeBuffs.magnet = 0;
                 activeBuffs.immune = 0;
+                starveTimer = STARVE_MAX;
 
                 updateUI();
                 updateLeaderboard();
@@ -591,6 +618,7 @@
                         isDead = false;
                         player.x = Math.random() * worldSize;
                         player.y = Math.random() * worldSize;
+                        starveTimer = STARVE_MAX;
                     }
                 }, 1000);
             }
@@ -898,6 +926,20 @@
                         ctx.stroke();
                     }
 
+                    // Draw Starvation Timer on Player
+                    const starveSeconds = Math.ceil(starveTimer / 60);
+                    const starveRatio = starveTimer / STARVE_MAX;
+                    let timerColor;
+                    if (starveRatio > 0.5) timerColor = `rgba(0, 255, 100, 0.9)`;
+                    else if (starveRatio > 0.25) timerColor = `rgba(255, 200, 0, 0.9)`;
+                    else timerColor = `rgba(255, ${Math.floor(50 + 50 * Math.sin(frameCount * 0.3))}, 50, 1.0)`;
+                    ctx.fillStyle = timerColor;
+                    ctx.font = `bold ${Math.max(10, player.radius * 0.7)}px "Segoe UI"`;
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(starveSeconds, player.x - camera.x, player.y - camera.y);
+                    ctx.textBaseline = 'alphabetic';
+
                     // Draw local player name
                     ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
                     ctx.font = 'bold 12px "Segoe UI"';
@@ -910,9 +952,17 @@
                         channel.send({
                             type: 'broadcast',
                             event: 'pos',
-                            payload: { id: playerId, x: player.x, y: player.y, radius: player.radius, color: playerColor, name: playerName, energy: energy, magnet: effectiveMagnet, angle: player.angle }
+                            payload: { id: playerId, x: player.x, y: player.y, radius: player.radius, color: playerColor, name: playerName, energy: energy, magnet: effectiveMagnet, angle: player.angle, starve: starveTimer }
                         });
                         lastBroadcast = now;
+                    }
+
+                    // Starvation timer
+                    if (activeBuffs.immune <= 0) {
+                        starveTimer--;
+                    }
+                    if (starveTimer <= 0) {
+                        die();
                     }
                 }
 
@@ -990,6 +1040,22 @@
                         ctx.textAlign = 'center';
                         ctx.fillText(p.name, p.x - camera.x, p.y - camera.y - p.radius - 10);
                     }
+
+                    // Render remote player starvation timer
+                    if (p.starve !== undefined) {
+                        const rStarveSeconds = Math.ceil(p.starve / 60);
+                        const rStarveRatio = p.starve / STARVE_MAX;
+                        let rTimerColor;
+                        if (rStarveRatio > 0.5) rTimerColor = `rgba(0, 255, 100, 0.9)`;
+                        else if (rStarveRatio > 0.25) rTimerColor = `rgba(255, 200, 0, 0.9)`;
+                        else rTimerColor = `rgba(255, 80, 50, 1.0)`;
+                        ctx.fillStyle = rTimerColor;
+                        ctx.font = `bold ${Math.max(10, p.radius * 0.7)}px "Segoe UI"`;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(rStarveSeconds, p.x - camera.x, p.y - camera.y);
+                        ctx.textBaseline = 'alphabetic';
+                    }
                 }
 
                 // Update and Draw Orbs
@@ -1024,9 +1090,13 @@
                             } else if (orb.type === 'super_magnet') {
                                 energy += 1 * player.mult;
                                 activeBuffs.magnet = 600; // 10 seconds
+                            } else if (orb.type === 'death_drop') {
+                                energy += (orb.value || 1) * player.mult;
                             } else {
                                 energy += (orb.value || 1) * player.mult;
                             }
+
+                            starveTimer = STARVE_MAX; // Reset starvation timer on eating any orb
 
                             createExplosion(orb.x, orb.y, orb.color);
 
