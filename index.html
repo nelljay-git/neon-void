@@ -514,7 +514,7 @@
                 joystickDelta.x = 0;
                 joystickDelta.y = 0;
             }, { passive: false });
-            
+
             canvas.addEventListener('touchcancel', (e) => {
                 e.preventDefault();
                 joystickActive = false;
@@ -523,7 +523,7 @@
             }, { passive: false });
 
             // World Map Size
-            const worldSize = 1000;
+            const worldSize = 15000;
 
             // Player Object
             const player = {
@@ -714,7 +714,7 @@
                 ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
                 ctx.lineWidth = 1;
                 const gridSize = 50;
-                
+
                 const startX = canvas.width / 2 - (canvas.width / 2) / currentZoom - gridSize;
                 const endX = canvas.width / 2 + (canvas.width / 2) / currentZoom + gridSize;
                 const startY = canvas.height / 2 - (canvas.height / 2) / currentZoom - gridSize;
@@ -759,15 +759,15 @@
                             let dist = Math.sqrt(joystickDelta.x * joystickDelta.x + joystickDelta.y * joystickDelta.y);
                             const maxJoyDist = 50; // max joystick pull
                             let moveDist = Math.min(dist, maxJoyDist);
-                            
+
                             if (dist > 0) {
                                 let dirX = joystickDelta.x / dist;
                                 let dirY = joystickDelta.y / dist;
-                                
+
                                 const maxDist = 200;
                                 let dx = dirX * maxDist * (moveDist / maxJoyDist);
                                 let dy = dirY * maxDist * (moveDist / maxJoyDist);
-                                
+
                                 player.x += dx * player.speed;
                                 player.y += dy * player.speed;
                                 if (dist > 0) player.angle = Math.atan2(dy, dx);
@@ -949,7 +949,7 @@
                         if (dist < player.radius + orb.radius) {
                             energy += 1 * player.mult;
                             createExplosion(orb.x, orb.y, orb.color);
-                            
+
                             if (channel) {
                                 channel.send({
                                     type: 'broadcast',
@@ -957,7 +957,7 @@
                                     payload: { id: orb.id }
                                 });
                             }
-                            
+
                             orbs.splice(i, 1);
                             updateUI();
                             continue;
