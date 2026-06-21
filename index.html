@@ -404,9 +404,45 @@
                             energy: payload.energy
                         };
                     }
+                }).on('broadcast', { event: 'spawn_orb' }, ({ payload }) => {
+                    if (!orbs.some(o => o.id === payload.id)) {
+                        orbs.push(payload);
+                    }
+                }).on('broadcast', { event: 'eat_orb' }, ({ payload }) => {
+                    const idx = orbs.findIndex(o => o.id === payload.id);
+                    if (idx !== -1) {
+                        const orb = orbs[idx];
+                        createExplosion(orb.x, orb.y, orb.color);
+                        orbs.splice(idx, 1);
+                    }
+                }).on('broadcast', { event: 'request_sync' }, () => {
+                    let isHost = true;
+                    for (let id in otherPlayers) {
+                        if (id < playerId) isHost = false;
+                    }
+                    if (isHost) {
+                        setTimeout(() => {
+                            channel.send({
+                                type: 'broadcast',
+                                event: 'sync_orbs',
+                                payload: orbs
+                            });
+                        }, Math.random() * 500);
+                    }
+                }).on('broadcast', { event: 'sync_orbs' }, ({ payload }) => {
+                    payload.forEach(incomingOrb => {
+                        if (!orbs.some(o => o.id === incomingOrb.id)) {
+                            orbs.push(incomingOrb);
+                        }
+                    });
                 }).subscribe(async (status) => {
                     if (status === 'SUBSCRIBED') {
                         await channel.track({ online_at: new Date().toISOString() });
+                        channel.send({
+                            type: 'broadcast',
+                            event: 'request_sync',
+                            payload: {}
+                        });
                     }
                 });
             }
@@ -606,7 +642,7 @@
             }
 
             // Spawn an Orb
-            function spawnOrb() {
+            function spawnOrb(isLocal = false) {
                 const margin = 300;
                 let spawnX = camera.x - margin + Math.random() * (canvas.width + 2 * margin);
                 let spawnY = camera.y - margin + Math.random() * (canvas.height + 2 * margin);
@@ -615,12 +651,23 @@
                 spawnX = Math.max(0, Math.min(spawnX, worldSize));
                 spawnY = Math.max(0, Math.min(spawnY, worldSize));
 
-                orbs.push({
+                const newOrb = {
+                    id: crypto.randomUUID(),
                     x: spawnX,
                     y: spawnY,
                     radius: Math.random() * 3 + 2,
                     color: `hsl(${Math.random() * 60 + 160}, 100%, 60%)` // Cyan/Blue/Green hues
-                });
+                };
+
+                orbs.push(newOrb);
+
+                if (isLocal && channel) {
+                    channel.send({
+                        type: 'broadcast',
+                        event: 'spawn_orb',
+                        payload: newOrb
+                    });
+                }
             }
 
             // Create Explosion Particles
@@ -691,10 +738,11 @@
                 ctx.strokeRect(-camera.x, -camera.y, worldSize, worldSize);
 
                 frameCount++;
-                if (frameCount % spawnRate === 0) {
-                    spawnOrb();
+                let currentSpawnRate = spawnRate * (1 + Object.keys(otherPlayers).length);
+                if (frameCount % currentSpawnRate === 0) {
+                    spawnOrb(true);
                     // Spawn extra orbs naturally over time as screen size permits
-                    if (orbs.length < 300) spawnOrb();
+                    if (orbs.length < 300) spawnOrb(true);
                 }
 
                 if (!isDead) {
@@ -858,6 +906,15 @@
                         if (dist < player.radius + orb.radius) {
                             energy += 1 * player.mult;
                             createExplosion(orb.x, orb.y, orb.color);
+                            
+                            if (channel) {
+                                channel.send({
+                                    type: 'broadcast',
+                                    event: 'eat_orb',
+                                    payload: { id: orb.id }
+                                });
+                            }
+                            
                             orbs.splice(i, 1);
                             updateUI();
                             continue;
