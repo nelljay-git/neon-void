@@ -568,8 +568,8 @@
 
             let isDead = false;
             let respawnTimer = 0;
-            let starveTimer = 600; // 10 seconds at 60fps
-            const STARVE_MAX = 600;
+            let starveTimer = 300; // 5 seconds at 60fps
+            const STARVE_MAX = 300;
 
             function die() {
                 if (isDead) return;
@@ -926,19 +926,21 @@
                         ctx.stroke();
                     }
 
-                    // Draw Starvation Timer on Player
-                    const starveSeconds = Math.ceil(starveTimer / 60);
+                    // Draw Starvation Pie Timer on Player
                     const starveRatio = starveTimer / STARVE_MAX;
                     let timerColor;
-                    if (starveRatio > 0.5) timerColor = `rgba(0, 255, 100, 0.9)`;
-                    else if (starveRatio > 0.25) timerColor = `rgba(255, 200, 0, 0.9)`;
-                    else timerColor = `rgba(255, ${Math.floor(50 + 50 * Math.sin(frameCount * 0.3))}, 50, 1.0)`;
+                    if (starveRatio > 0.5) timerColor = `rgba(0, 255, 100, 0.6)`;
+                    else if (starveRatio > 0.25) timerColor = `rgba(255, 200, 0, 0.7)`;
+                    else timerColor = `rgba(255, ${Math.floor(50 + 50 * Math.sin(frameCount * 0.3))}, 50, 0.8)`;
+                    const pieRadius = player.radius + 5;
+                    const startAngle = -Math.PI / 2;
+                    const endAngle = startAngle + (Math.PI * 2 * starveRatio);
+                    ctx.beginPath();
+                    ctx.moveTo(player.x - camera.x, player.y - camera.y);
+                    ctx.arc(player.x - camera.x, player.y - camera.y, pieRadius, startAngle, endAngle);
+                    ctx.closePath();
                     ctx.fillStyle = timerColor;
-                    ctx.font = `bold ${Math.max(10, player.radius * 0.7)}px "Segoe UI"`;
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(starveSeconds, player.x - camera.x, player.y - camera.y);
-                    ctx.textBaseline = 'alphabetic';
+                    ctx.fill();
 
                     // Draw local player name
                     ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
@@ -1041,20 +1043,22 @@
                         ctx.fillText(p.name, p.x - camera.x, p.y - camera.y - p.radius - 10);
                     }
 
-                    // Render remote player starvation timer
+                    // Render remote player starvation pie timer
                     if (p.starve !== undefined) {
-                        const rStarveSeconds = Math.ceil(p.starve / 60);
                         const rStarveRatio = p.starve / STARVE_MAX;
                         let rTimerColor;
-                        if (rStarveRatio > 0.5) rTimerColor = `rgba(0, 255, 100, 0.9)`;
-                        else if (rStarveRatio > 0.25) rTimerColor = `rgba(255, 200, 0, 0.9)`;
-                        else rTimerColor = `rgba(255, 80, 50, 1.0)`;
+                        if (rStarveRatio > 0.5) rTimerColor = `rgba(0, 255, 100, 0.6)`;
+                        else if (rStarveRatio > 0.25) rTimerColor = `rgba(255, 200, 0, 0.7)`;
+                        else rTimerColor = `rgba(255, 80, 50, 0.8)`;
+                        const rPieRadius = p.radius + 5;
+                        const rStartAngle = -Math.PI / 2;
+                        const rEndAngle = rStartAngle + (Math.PI * 2 * rStarveRatio);
+                        ctx.beginPath();
+                        ctx.moveTo(p.x - camera.x, p.y - camera.y);
+                        ctx.arc(p.x - camera.x, p.y - camera.y, rPieRadius, rStartAngle, rEndAngle);
+                        ctx.closePath();
                         ctx.fillStyle = rTimerColor;
-                        ctx.font = `bold ${Math.max(10, p.radius * 0.7)}px "Segoe UI"`;
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText(rStarveSeconds, p.x - camera.x, p.y - camera.y);
-                        ctx.textBaseline = 'alphabetic';
+                        ctx.fill();
                     }
                 }
 
