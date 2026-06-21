@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neon Void Grinder</title>
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #0f0f13;
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        #gameCanvas {
+            cursor: crosshair;
+            display: block;
+        }
+
+        #hud {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .hud-stat {
+            background: rgba(26, 26, 36, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(0, 255, 204, 0.2);
+            padding: 10px 20px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hud-label {
+            font-size: 12px;
+            color: #aaa;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+        }
+
+        .hud-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff00ff;
+            text-shadow: 0 0 10px rgba(255, 0, 255, 0.5);
+        }
+
+        #open-shop-btn {
+            background: linear-gradient(45deg, #00ffcc, #00b3ff);
+            color: #0f0f13;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        #open-shop-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(0, 255, 204, 0.6);
+        }
+
+        #shop-modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        #shop-modal.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .shop-content {
+            background: rgba(30, 30, 45, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            box-sizing: border-box;
+            padding: 30px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+            transform: scale(1);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        #shop-modal.hidden .shop-content {
+            transform: scale(0.8);
+        }
+
+        .shop-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 15px;
+        }
+
+        .shop-header h2 {
+            margin: 0;
+            color: #00ffcc;
+            font-size: 24px;
+            text-shadow: 0 0 10px rgba(0, 255, 204, 0.3);
+            letter-spacing: 2px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            padding: 0;
+            line-height: 1;
+        }
+
+        .close-btn:hover {
+            opacity: 1;
+        }
+
+        .upgrade-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+
+        .upgrade-btn:last-child {
+            margin-bottom: 0;
+        }
+
+        .upgrade-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #00ffcc;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.2);
+        }
+
+        .upgrade-btn:active {
+            transform: scale(0.98);
+        }
+
+        .upgrade-btn.disabled {
+            opacity: 0.4;
+            pointer-events: none;
+            filter: grayscale(100%);
+        }
+
+        .btn-info {
+            text-align: left;
+        }
+
+        .btn-title {
+            font-weight: bold;
+            display: block;
+            margin-bottom: 4px;
+            font-size: 16px;
+        }
+
+        .btn-lvl {
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        .btn-cost {
+            color: #ff00ff;
+            font-weight: bold;
+            font-size: 18px;
+            text-shadow: 0 0 8px rgba(255, 0, 255, 0.4);
+        }
+
+        #leaderboard {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(26, 26, 36, 0.7);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(0, 255, 204, 0.2);
+            border-radius: 12px;
+            padding: 15px;
+            width: 200px;
+            z-index: 10;
+        }
+
+        #leaderboard h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #00ffcc;
+            text-align: center;
+            letter-spacing: 1px;
+            text-shadow: 0 0 5px rgba(0, 255, 204, 0.5);
+        }
+
+        #leaderboard-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        #leaderboard-list li {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 4px;
+        }
+
+        #leaderboard-list li:last-child {
+            margin-bottom: 0;
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .lb-name {
+            flex-grow: 1;
+            margin-left: 8px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #fff;
+        }
+
+        .lb-score {
+            color: #ff00ff;
+            font-weight: bold;
+        }
+
+        @media (max-width: 600px) {
+            #hud {
+                top: 10px;
+                left: 10px;
+                right: 10px;
+                justify-content: space-between;
+                gap: 10px;
+            }
+
+            .hud-stat {
+                padding: 8px 12px;
+            }
+
+            .hud-value {
+                font-size: 18px;
+            }
+
+            #open-shop-btn {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+
+            .shop-content {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="hud">
+        <div class="hud-stat">
+            <span class="hud-label">ENERGY</span>
+            <span class="hud-value" id="hud-energy">0</span>
+        </div>
+        <div class="hud-stat">
+            <span class="hud-label">MULTIPLIER</span>
+            <span class="hud-value" id="hud-mult">x1</span>
+        </div>
+        <button id="open-shop-btn">SHOP</button>
+    </div>
+
+    <div id="leaderboard">
+        <h3>TOP 10</h3>
+        <ul id="leaderboard-list">
+        </ul>
+    </div>
+
+    <div id="shop-modal" class="hidden">
+        <div class="shop-content">
+            <div class="shop-header">
+                <h2>UPGRADES</h2>
+                <button class="close-btn" id="close-shop-btn">&times;</button>
+            </div>
+
+            <button class="upgrade-btn" id="btn-speed">
+                <div class="btn-info">
+                    <span class="btn-title">Movement Speed</span>
+                    <span class="btn-lvl">Lvl <span id="lvl-speed">1</span></span>
+                </div>
+                <span class="btn-cost" id="cost-speed">10</span>
+            </button>
+
+            <button class="upgrade-btn" id="btn-magnet">
+                <div class="btn-info">
+                    <span class="btn-title">Magnet Radius</span>
+                    <span class="btn-lvl">Lvl <span id="lvl-magnet">1</span></span>
+                </div>
+                <span class="btn-cost" id="cost-magnet">25</span>
+            </button>
+
+            <button class="upgrade-btn" id="btn-mult">
+                <div class="btn-info">
+                    <span class="btn-title">Energy Multiplier</span>
+                    <span class="btn-lvl">Lvl <span id="lvl-mult">1</span></span>
+                </div>
+                <span class="btn-cost" id="cost-mult">100</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        (() => {
+            // --- Supabase Multiplayer Setup ---
+            const SUPABASE_URL = atob("aHR0cHM6Ly9xeHZvaXNyZWh4Y2RiaHV6d2xpay5zdXBhYmFzZS5jbw==");
+            const SUPABASE_ANON_KEY = atob("ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKemRYQmhZbUZ6WlNJc0luSmxaaUk2SW5GNGRtOXBjM0psYUhoalpHSm9kWHAzYkdscklpd2ljbTlzWlNJNkltRnViMjRpTENKcFlYUWlPakUzT0RJd05UTXdNemNzSW1WNGNDSTZNakE1TnpZeU9UQXpOMzAucFV3Um9vdnVUa1RLMW9aVTFIeFNLU0YtWXpJSDhuSndldUNVZmhrdWVfUQ==");
+
+            let supabaseClient = null;
+            let channel = null;
+            const playerId = crypto.randomUUID();
+            const playerColor = `hsl(${Math.random() * 360}, 100%, 60%)`;
+            const playerName = `Player${Math.floor(Math.random() * 9000) + 1000}`;
+            const otherPlayers = {};
+
+            if (SUPABASE_URL !== "YOUR_SUPABASE_URL_HERE") {
+                supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+                channel = supabaseClient.channel('neon-void-room', {
+                    config: {
+                        presence: { key: playerId },
+                        broadcast: { self: false }
+                    }
+                });
+
+                channel.on('presence', { event: 'join' }, ({ key, newPresences }) => {
+                    if (!otherPlayers[key] && key !== playerId) {
+                        otherPlayers[key] = { x: 0, y: 0, targetX: 0, targetY: 0, radius: 15, color: '#fff', name: '' };
+                    }
+                }).on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
+                    delete otherPlayers[key];
+                }).on('broadcast', { event: 'kill' }, ({ payload }) => {
+                    if (payload.victim === playerId && !killImmunity.has(payload.killer)) {
+                        die();
+                    }
+                }).on('broadcast', { event: 'pos' }, ({ payload }) => {
+                    if (payload.id === playerId) return;
+
+                    if (otherPlayers[payload.id]) {
+                        otherPlayers[payload.id].targetX = payload.x;
+                        otherPlayers[payload.id].targetY = payload.y;
+                        otherPlayers[payload.id].radius = payload.radius;
+                        otherPlayers[payload.id].color = payload.color;
+                        otherPlayers[payload.id].name = payload.name;
+                        otherPlayers[payload.id].energy = payload.energy;
+                    } else {
+                        otherPlayers[payload.id] = {
+                            x: payload.x, y: payload.y,
+                            targetX: payload.x, targetY: payload.y,
+                            radius: payload.radius,
+                            color: payload.color,
+                            name: payload.name,
+                            energy: payload.energy
+                        };
+                    }
+                }).subscribe(async (status) => {
+                    if (status === 'SUBSCRIBED') {
+                        await channel.track({ online_at: new Date().toISOString() });
+                    }
+                });
+            }
+
+            let lastBroadcast = 0;
+            const killImmunity = new Set(); // IDs of players we recently killed (ignore their kill events)
+
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // Resize canvas
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            window.addEventListener('resize', resize);
+            resize();
+
+            // Game State
+            let energy = 0;
+            const mouse = { x: canvas.width / 2, y: canvas.height / 2 };
+
+            // Mobile viewport detection
+            let isMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 600);
+            window.addEventListener('resize', () => {
+                isMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0) || (window.innerWidth <= 600);
+            });
+
+            // Mouse/Touch tracking
+            const updateTarget = (e) => {
+                if (e.type === 'touchstart' || e.type === 'touchmove') {
+                    e.preventDefault();
+                }
+                if (e.touches && e.touches.length > 0) {
+                    mouse.x = e.touches[0].clientX;
+                    mouse.y = e.touches[0].clientY;
+                } else if (e.clientX !== undefined) {
+                    mouse.x = e.clientX;
+                    mouse.y = e.clientY;
+                }
+            };
+
+            canvas.addEventListener('mousemove', updateTarget);
+            canvas.addEventListener('touchstart', updateTarget, { passive: false });
+            canvas.addEventListener('touchmove', updateTarget, { passive: false });
+
+            // World Map Size
+            const worldSize = 1000;
+
+            // Player Object
+            const player = {
+                x: worldSize / 2,
+                y: worldSize / 2,
+                radius: 15,
+                speed: 0.01,     // Interpolation speed
+                magnet: isMobile ? 40 : 10,      // Larger magnet radius on mobile
+                mult: 1          // Energy multiplier
+            };
+
+            // Camera
+            const camera = {
+                x: player.x - canvas.width / 2,
+                y: player.y - canvas.height / 2
+            };
+
+            // Upgrades System
+            const upgrades = {
+                speed: { cost: 10, lvl: 1, max: 20, scale: 1.5, effect: () => player.speed += 0.001 },
+                magnet: { cost: 25, lvl: 1, max: 50, scale: 1.6, effect: () => player.magnet += 25 },
+                mult: { cost: 100, lvl: 1, max: 99, scale: 2.0, effect: () => player.mult += 1 }
+            };
+
+            let spawnRate = 5; // Lower is faster
+            let frameCount = 0;
+
+            // Entities Arrays
+            const orbs = [];
+            const particles = [];
+            const texts = [];
+
+            let isDead = false;
+            let respawnTimer = 0;
+
+            function die() {
+                if (isDead) return;
+                isDead = true;
+                respawnTimer = 3;
+                energy = 0;
+
+                // Reset Upgrades
+                upgrades.speed.lvl = 1; upgrades.speed.cost = 10; player.speed = 0.01;
+                upgrades.magnet.lvl = 1; upgrades.magnet.cost = 25; player.magnet = isMobile ? 40 : 10;
+                upgrades.mult.lvl = 1; upgrades.mult.cost = 100; player.mult = 1;
+
+                updateUI();
+                updateLeaderboard();
+
+                let interval = setInterval(() => {
+                    respawnTimer--;
+                    if (respawnTimer <= 0) {
+                        clearInterval(interval);
+                        isDead = false;
+                        player.x = Math.random() * worldSize;
+                        player.y = Math.random() * worldSize;
+                    }
+                }, 1000);
+            }
+
+            // Buy Upgrade Function
+            function buyUpgrade(type) {
+                const upg = upgrades[type];
+                if (energy >= upg.cost && upg.lvl < upg.max) {
+                    energy -= upg.cost;
+                    upg.lvl++;
+                    upg.effect();
+                    upg.cost = Math.floor(upg.cost * upg.scale);
+                    updateUI();
+                }
+            }
+
+            function toggleShop() {
+                const modal = document.getElementById('shop-modal');
+                modal.classList.toggle('hidden');
+            }
+
+            // Attach Event Listeners
+            document.getElementById('open-shop-btn').addEventListener('click', toggleShop);
+            document.getElementById('close-shop-btn').addEventListener('click', toggleShop);
+            document.getElementById('btn-speed').addEventListener('click', () => buyUpgrade('speed'));
+            document.getElementById('btn-magnet').addEventListener('click', () => buyUpgrade('magnet'));
+            document.getElementById('btn-mult').addEventListener('click', () => buyUpgrade('mult'));
+
+            function updateUI() {
+                document.getElementById('hud-energy').innerText = Math.floor(energy);
+                document.getElementById('hud-mult').innerText = `x${player.mult}`;
+
+                for (let key in upgrades) {
+                    const upg = upgrades[key];
+                    const btn = document.getElementById(`btn-${key}`);
+                    document.getElementById(`cost-${key}`).innerText = upg.lvl >= upg.max ? "MAX" : upg.cost;
+                    document.getElementById(`lvl-${key}`).innerText = upg.lvl;
+
+                    if (energy < upg.cost || upg.lvl >= upg.max) {
+                        btn.classList.add('disabled');
+                    } else {
+                        btn.classList.remove('disabled');
+                    }
+                }
+            }
+
+            function updateLeaderboard() {
+                const playersList = [{ name: playerName + " (You)", energy: energy }];
+                for (let id in otherPlayers) {
+                    playersList.push({ name: otherPlayers[id].name, energy: otherPlayers[id].energy || 0 });
+                }
+                playersList.sort((a, b) => b.energy - a.energy);
+
+                const lbList = document.getElementById('leaderboard-list');
+                lbList.innerHTML = '';
+                for (let i = 0; i < Math.min(10, playersList.length); i++) {
+                    const p = playersList[i];
+                    lbList.innerHTML += `<li>
+                    <span style="color: #aaa">${i + 1}.</span>
+                    <span class="lb-name">${p.name || 'Unknown'}</span>
+                    <span class="lb-score">${Math.floor(p.energy)}</span>
+                </li>`;
+                }
+            }
+
+            // Spawn an Orb
+            function spawnOrb() {
+                const margin = 300;
+                let spawnX = camera.x - margin + Math.random() * (canvas.width + 2 * margin);
+                let spawnY = camera.y - margin + Math.random() * (canvas.height + 2 * margin);
+
+                // Clamp to world bounds
+                spawnX = Math.max(0, Math.min(spawnX, worldSize));
+                spawnY = Math.max(0, Math.min(spawnY, worldSize));
+
+                orbs.push({
+                    x: spawnX,
+                    y: spawnY,
+                    radius: Math.random() * 3 + 2,
+                    color: `hsl(${Math.random() * 60 + 160}, 100%, 60%)` // Cyan/Blue/Green hues
+                });
+            }
+
+            // Create Explosion Particles
+            function createExplosion(x, y, color) {
+                for (let i = 0; i < 5; i++) {
+                    particles.push({
+                        x: x, y: y,
+                        vx: (Math.random() - 0.5) * 4,
+                        vy: (Math.random() - 0.5) * 4,
+                        life: 1,
+                        color: color
+                    });
+                }
+                texts.push({
+                    x: x, y: y,
+                    text: `+${player.mult}`,
+                    life: 1
+                });
+            }
+
+            // Main Game Loop
+            function loop() {
+                // Clear screen with solid background for infinite canvas
+                ctx.fillStyle = '#0f0f13';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw grid to show movement
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+                ctx.lineWidth = 1;
+                const gridSize = 50;
+                const offsetX = - (camera.x % gridSize);
+                const offsetY = - (camera.y % gridSize);
+
+                ctx.beginPath();
+                for (let x = offsetX; x < canvas.width; x += gridSize) {
+                    ctx.moveTo(x, 0);
+                    ctx.lineTo(x, canvas.height);
+                }
+                for (let y = offsetY; y < canvas.height; y += gridSize) {
+                    ctx.moveTo(0, y);
+                    ctx.lineTo(canvas.width, y);
+                }
+                ctx.stroke();
+
+                // Draw World Border
+                ctx.strokeStyle = 'rgba(255, 0, 85, 0.5)';
+                ctx.lineWidth = 5;
+                ctx.strokeRect(-camera.x, -camera.y, worldSize, worldSize);
+
+                frameCount++;
+                if (frameCount % spawnRate === 0) {
+                    spawnOrb();
+                    // Spawn extra orbs naturally over time as screen size permits
+                    if (orbs.length < 300) spawnOrb();
+                }
+
+                if (!isDead) {
+                    // Dynamic Radius based on Energy
+                    player.radius = 15 + Math.sqrt(energy) * 1.5;
+
+                    // Move Player smoothly towards mouse world coordinates, but cap maximum speed
+                    let targetX = camera.x + mouse.x;
+                    let targetY = camera.y + mouse.y;
+
+                    let dx = targetX - player.x;
+                    let dy = targetY - player.y;
+                    let dist = Math.sqrt(dx * dx + dy * dy);
+
+                    // Cap the distance to limit maximum velocity
+                    const maxDist = 200;
+                    if (dist > maxDist) {
+                        dx = (dx / dist) * maxDist;
+                        dy = (dy / dist) * maxDist;
+                    }
+
+                    player.x += dx * player.speed;
+                    player.y += dy * player.speed;
+
+                    // Clamp player to world bounds
+                    player.x = Math.max(player.radius, Math.min(player.x, worldSize - player.radius));
+                    player.y = Math.max(player.radius, Math.min(player.y, worldSize - player.radius));
+
+                    // Update camera position to keep player centered
+                    camera.x = player.x - canvas.width / 2;
+                    camera.y = player.y - canvas.height / 2;
+
+                    // Draw Player Magnet Radius
+                    ctx.beginPath();
+                    ctx.arc(player.x - camera.x, player.y - camera.y, player.magnet, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(0, 255, 204, 0.1)';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+
+                    // Draw Player
+                    ctx.beginPath();
+                    ctx.arc(player.x - camera.x, player.y - camera.y, player.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = playerColor;
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = playerColor;
+                    ctx.fill();
+                    ctx.shadowBlur = 0; // Reset shadow
+
+                    // Draw local player name
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+                    ctx.font = 'bold 12px "Segoe UI"';
+                    ctx.textAlign = 'center';
+                    ctx.fillText(playerName + " (You)", player.x - camera.x, player.y - camera.y - player.radius - 10);
+
+                    // Supabase Multiplayer: Broadcast our position
+                    const now = Date.now();
+                    if (channel && now - lastBroadcast > 100) {
+                        channel.send({
+                            type: 'broadcast',
+                            event: 'pos',
+                            payload: { id: playerId, x: player.x, y: player.y, radius: player.radius, color: playerColor, name: playerName, energy: energy }
+                        });
+                        lastBroadcast = now;
+                    }
+                } else {
+                    // Dead State UI
+                    ctx.fillStyle = 'rgba(255, 0, 85, 0.8)';
+                    ctx.font = 'bold 48px "Segoe UI"';
+                    ctx.textAlign = 'center';
+                    ctx.fillText("YOU DIED", canvas.width / 2, canvas.height / 2 - 20);
+
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '24px "Segoe UI"';
+                    ctx.fillText(`Respawning in ${respawnTimer}...`, canvas.width / 2, canvas.height / 2 + 20);
+                }
+
+                if (frameCount % 30 === 0) {
+                    updateLeaderboard();
+                }
+
+                for (let id in otherPlayers) {
+                    let p = otherPlayers[id];
+                    // Interpolate
+                    p.x += (p.targetX - p.x) * 0.2;
+                    p.y += (p.targetY - p.y) * 0.2;
+
+                    // PvP Collision Check
+                    if (!isDead) {
+                        let dx = p.x - player.x;
+                        let dy = p.y - player.y;
+                        let dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < player.radius + p.radius) {
+                            // Check who is bigger
+                            if (energy > (p.energy || 0)) {
+                                // We eat them!
+                                energy += (p.energy || 0);
+                                createExplosion(p.x, p.y, p.color);
+                                // Grant kill immunity so their kill event doesn't kill us back
+                                killImmunity.add(id);
+                                setTimeout(() => killImmunity.delete(id), 2000);
+                                channel.send({
+                                    type: 'broadcast',
+                                    event: 'kill',
+                                    payload: { victim: id, killer: playerId }
+                                });
+                                delete otherPlayers[id]; // Temporarily remove
+                                updateUI();
+                                continue; // skip rendering them this frame
+                            }
+                        }
+                    }
+
+                    // Render remote player
+                    ctx.beginPath();
+                    ctx.arc(p.x - camera.x, p.y - camera.y, p.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = p.color;
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = p.color;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+
+                    // Render remote player name
+                    if (p.name) {
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                        ctx.font = '12px "Segoe UI"';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(p.name, p.x - camera.x, p.y - camera.y - p.radius - 10);
+                    }
+                }
+
+                // Update and Draw Orbs
+                for (let i = orbs.length - 1; i >= 0; i--) {
+                    let orb = orbs[i];
+
+                    let dx = player.x - orb.x;
+                    let dy = player.y - orb.y;
+                    let dist = Math.sqrt(dx * dx + dy * dy);
+
+                    // Cull distant orbs
+                    if (dist > Math.max(canvas.width, canvas.height) + 500) {
+                        orbs.splice(i, 1);
+                        continue;
+                    }
+
+                    // Magnet logic
+                    if (!isDead) {
+                        if (dist < player.magnet) {
+                            orb.x += dx * 0.1; // Pull towards player
+                            orb.y += dy * 0.1;
+                        }
+
+                        // Collision (Collect)
+                        if (dist < player.radius + orb.radius) {
+                            energy += 1 * player.mult;
+                            createExplosion(orb.x, orb.y, orb.color);
+                            orbs.splice(i, 1);
+                            updateUI();
+                            continue;
+                        }
+                    }
+
+                    // Draw Orb
+                    ctx.beginPath();
+                    ctx.arc(orb.x - camera.x, orb.y - camera.y, orb.radius, 0, Math.PI * 2);
+                    ctx.fillStyle = orb.color;
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = orb.color;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+
+                // Update and Draw Particles
+                for (let i = particles.length - 1; i >= 0; i--) {
+                    let p = particles[i];
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    p.life -= 0.05;
+
+                    if (p.life <= 0) {
+                        particles.splice(i, 1);
+                        continue;
+                    }
+
+                    ctx.globalAlpha = p.life;
+                    ctx.fillStyle = p.color;
+                    ctx.fillRect(p.x - camera.x, p.y - camera.y, 2, 2);
+                    ctx.globalAlpha = 1.0;
+                }
+
+                // Update and Draw Floating Text
+                for (let i = texts.length - 1; i >= 0; i--) {
+                    let t = texts[i];
+                    t.y -= 1; // Float up
+                    t.life -= 0.02;
+
+                    if (t.life <= 0) {
+                        texts.splice(i, 1);
+                        continue;
+                    }
+
+                    ctx.globalAlpha = t.life;
+                    ctx.fillStyle = '#ff00ff';
+                    ctx.font = '14px Arial';
+                    ctx.fillText(t.text, t.x - camera.x, t.y - camera.y);
+                    ctx.globalAlpha = 1.0;
+                }
+
+                // Keep UI updated for button states
+                if (frameCount % 10 === 0) updateUI();
+
+                requestAnimationFrame(loop);
+            }
+
+            // Start game
+            for (let i = 0; i < 50; i++) spawnOrb(); // Initial orbs
+            updateUI();
+            loop();
+
+        })();
+    </script>
+</body>
+
+</html>
