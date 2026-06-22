@@ -245,21 +245,25 @@
             position: absolute;
             top: 20px;
             right: 20px;
-            background: rgba(26, 26, 36, 0.7);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(0, 255, 204, 0.2);
-            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(26, 26, 36, 0.8) 0%, rgba(15, 15, 25, 0.9) 100%);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 255, 204, 0.3);
+            border-radius: 16px;
             padding: 15px;
-            width: 200px;
+            width: 240px;
             z-index: 10;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 255, 204, 0.1);
         }
 
         #leaderboard h3 {
-            margin: 0 0 10px 0;
-            font-size: 14px;
+            margin: 0 0 15px 0;
+            font-size: 16px;
             color: #00ffcc;
             text-align: center;
-            letter-spacing: 1px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            border-bottom: 1px solid rgba(0, 255, 204, 0.2);
+            padding-bottom: 10px;
         }
 
         #leaderboard-list {
@@ -272,15 +276,20 @@
         #leaderboard-list li {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 5px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            padding-bottom: 4px;
+            align-items: center;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            padding: 6px 10px;
+            transition: background 0.2s;
+        }
+
+        #leaderboard-list li:hover {
+            background: rgba(255, 255, 255, 0.08);
         }
 
         #leaderboard-list li:last-child {
             margin-bottom: 0;
-            border-bottom: none;
-            padding-bottom: 0;
         }
 
         .lb-name {
@@ -290,11 +299,39 @@
             overflow: hidden;
             text-overflow: ellipsis;
             color: #fff;
+            font-weight: 500;
         }
 
         .lb-score {
             color: #ff00ff;
             font-weight: bold;
+            text-shadow: 0 0 5px rgba(255, 0, 255, 0.5);
+        }
+
+        .lb-kd {
+            display: flex;
+            gap: 4px;
+            margin-right: 8px;
+        }
+
+        .lb-badge {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+            color: #ccc;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .lb-k {
+            color: #ff4444;
+            border-color: rgba(255, 68, 68, 0.3);
+        }
+
+        .lb-d {
+            color: #888;
+            border-color: rgba(136, 136, 136, 0.3);
         }
 
         #main-menu {
@@ -408,6 +445,171 @@
                 padding: 20px;
             }
         }
+
+        .subtle-btn {
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 14px;
+            cursor: pointer;
+            text-decoration: underline;
+            margin: 0 10px;
+            transition: color 0.2s;
+        }
+
+        .subtle-btn:hover {
+            color: #fff;
+        }
+
+        #auth-section {
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #aaa;
+        }
+
+        #global-leaderboard-panel {
+            margin-top: 30px;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 15px;
+            text-align: left;
+        }
+
+        #global-leaderboard-panel h3 {
+            margin: 0 0 10px 0;
+            color: #ff00ff;
+            text-align: center;
+            font-size: 14px;
+            letter-spacing: 2px;
+        }
+
+        #global-leaderboard-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        #global-leaderboard-list li {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 14px;
+            color: #ccc;
+        }
+
+        #global-leaderboard-list li:last-child {
+            border-bottom: none;
+        }
+
+        .glb-name {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .glb-score {
+            color: #00ffcc;
+            font-family: monospace;
+            font-size: 16px;
+        }
+
+        /* Modals */
+        .auth-modal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(20, 20, 30, 0.95);
+            border: 1px solid rgba(0, 255, 204, 0.3);
+            padding: 30px;
+            border-radius: 15px;
+            z-index: 300;
+            text-align: center;
+            width: 300px;
+        }
+
+        .auth-modal input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid #555;
+            color: #fff;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .auth-modal button {
+            width: 100%;
+            padding: 10px;
+            background: #00ffcc;
+            color: #000;
+            border: none;
+            font-weight: bold;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .auth-modal button.cancel {
+            background: #555;
+            color: #fff;
+        }
+
+        /* Death Overlay */
+        #death-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 250;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        #death-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        #death-overlay h1 {
+            color: rgba(255, 0, 85, 0.9);
+            font-size: 56px;
+            margin: 0;
+            text-shadow: 0 0 20px rgba(255, 0, 85, 0.5);
+        }
+
+        #death-overlay .death-timer {
+            color: #fff;
+            font-size: 22px;
+            margin-top: 10px;
+        }
+
+        #btn-return-home {
+            margin-top: 25px;
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.6);
+            padding: 10px 25px;
+            font-size: 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        #btn-return-home:hover {
+            border-color: #00ffcc;
+            color: #00ffcc;
+        }
     </style>
 </head>
 
@@ -418,9 +620,59 @@
     <div id="main-menu" class="active">
         <div class="menu-content">
             <h1>NEON VOID</h1>
+
+            <div id="auth-section">
+                <button id="btn-show-login" class="subtle-btn">Login</button>
+                <button id="btn-show-signup" class="subtle-btn">Sign Up</button>
+                <span id="logged-in-text" class="hidden">Logged in as <strong id="logged-in-user"></strong></span>
+                <button id="btn-logout" class="subtle-btn hidden">Logout</button>
+            </div>
+
             <input type="text" id="player-name-input" placeholder="Enter Nickname" maxlength="16">
             <button id="play-btn">PLAY</button>
+            <button id="btn-show-leaderboard" class="subtle-btn"
+                style="margin-top: 15px; font-weight: bold; font-size: 16px; color: #00ffcc; text-decoration: none;">View
+                Global Leaderboard</button>
         </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="auth-modal hidden">
+        <h2>Login</h2>
+        <input type="email" id="login-email" placeholder="Email">
+        <input type="password" id="login-password" placeholder="Password">
+        <p id="login-error" style="color: #ff4444; font-size: 12px;"></p>
+        <button id="btn-submit-login">Login</button>
+        <button id="btn-cancel-login" class="cancel">Cancel</button>
+    </div>
+
+    <div id="signup-modal" class="auth-modal hidden">
+        <h2>Sign Up</h2>
+        <input type="text" id="signup-username" placeholder="Username">
+        <input type="email" id="signup-email" placeholder="Email">
+        <input type="password" id="signup-password" placeholder="Password">
+        <p id="signup-error" style="color: #ff4444; font-size: 12px;"></p>
+        <button id="btn-submit-signup">Sign Up</button>
+        <button id="btn-cancel-signup" class="cancel">Cancel</button>
+    </div>
+
+    <!-- Global Leaderboard Modal -->
+    <!-- Death Overlay -->
+    <div id="death-overlay">
+        <h1>YOU DIED</h1>
+        <span class="death-timer" id="death-timer-text">Respawning in 3...</span>
+        <button id="btn-return-home">Return to Home Screen</button>
+    </div>
+
+    <div id="leaderboard-modal" class="auth-modal hidden" style="width: 350px;">
+        <h2 style="color: #ff00ff; letter-spacing: 2px; margin-top: 0; margin-bottom: 5px;">GLOBAL TOP 10</h2>
+        <p style="color: #aaa; font-size: 12px; margin-top: 0; margin-bottom: 20px;">Highest Energy</p>
+        <div id="global-leaderboard-panel" style="margin-top: 0; border: none; background: transparent; padding: 0;">
+            <ul id="global-leaderboard-list">
+                <li>Loading...</li>
+            </ul>
+        </div>
+        <button id="btn-close-leaderboard" class="cancel" style="margin-top: 25px;">Close</button>
     </div>
 
     <div id="hud" class="hidden">
@@ -486,6 +738,9 @@
             const playerColor = `hsl(${Math.random() * 360}, 100%, 60%)`;
             let playerName = `Player${Math.floor(Math.random() * 9000) + 1000}`;
             const otherPlayers = {};
+            let isBot = true;
+            let botCount = 5;
+            const bots = [];
 
             if (SUPABASE_URL !== "YOUR_SUPABASE_URL_HERE") {
                 supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -525,6 +780,9 @@
                         otherPlayers[payload.id].angle = payload.angle;
                         otherPlayers[payload.id].starve = payload.starve;
                         otherPlayers[payload.id].starveMax = payload.starveMax;
+                        otherPlayers[payload.id].kills = payload.kills;
+                        otherPlayers[payload.id].deaths = payload.deaths;
+                        otherPlayers[payload.id].speedBuffActive = payload.speedBuffActive;
                     } else {
                         otherPlayers[payload.id] = {
                             x: payload.x, y: payload.y,
@@ -536,7 +794,10 @@
                             magnet: payload.magnet,
                             angle: payload.angle,
                             starve: payload.starve,
-                            starveMax: payload.starveMax
+                            starveMax: payload.starveMax,
+                            kills: payload.kills || 0,
+                            deaths: payload.deaths || 0,
+                            speedBuffActive: payload.speedBuffActive || false
                         };
                     }
                 }).on('broadcast', { event: 'spawn_orb' }, ({ payload }) => {
@@ -599,6 +860,7 @@
 
             // Game State
             let energy = 0;
+            let peakEnergy = 0;
             const mouse = { x: canvas.width / 2, y: canvas.height / 2 };
 
             // Mobile viewport detection
@@ -664,7 +926,9 @@
                 radius: 15,
                 speed: 0.01,     // Interpolation speed
                 magnet: isMobile ? 40 : 10,      // Larger magnet radius on mobile
-                mult: 0.5          // Energy multiplier
+                mult: 0.5,         // Energy multiplier
+                kills: 0,
+                deaths: 0
             };
 
             const activeBuffs = {
@@ -715,7 +979,12 @@
             function die() {
                 if (isDead) return;
                 isDead = true;
+                player.deaths++;
                 respawnTimer = 3;
+
+                // Show death overlay
+                document.getElementById('death-overlay').classList.add('active');
+                document.getElementById('death-timer-text').innerText = `Respawning in ${respawnTimer}...`;
 
                 // Create massive explosion locally
                 for (let i = 0; i < 10; i++) {
@@ -747,7 +1016,19 @@
                     }
                 }
 
+                if (currentUser && supabaseClient && peakEnergy > 0) {
+                    const finalEnergy = peakEnergy;
+                    supabaseClient.from('global_leaderboard').select('max_energy').eq('id', currentUser.id).single().then(({ data }) => {
+                        if (data && finalEnergy > data.max_energy) {
+                            supabaseClient.from('global_leaderboard').update({ max_energy: Math.floor(finalEnergy) }).eq('id', currentUser.id).then(() => {
+                                fetchGlobalLeaderboard();
+                            });
+                        }
+                    });
+                }
+
                 energy = 0;
+                peakEnergy = 0;
 
                 // Reset Upgrades
                 upgrades.speed.lvl = 1; upgrades.speed.cost = 10; player.speed = 0.01;
@@ -761,16 +1042,20 @@
                 updateUI();
                 updateLeaderboard();
 
-                let interval = setInterval(() => {
+                respawnIntervalId = setInterval(() => {
                     respawnTimer--;
+                    document.getElementById('death-timer-text').innerText = `Respawning in ${respawnTimer}...`;
                     if (respawnTimer <= 0) {
-                        clearInterval(interval);
+                        clearInterval(respawnIntervalId);
+                        respawnIntervalId = null;
                         isDead = false;
+                        document.getElementById('death-overlay').classList.remove('active');
                         player.x = Math.random() * worldSize;
                         player.y = Math.random() * worldSize;
                         player.radius = 0;
                         window.spawnScale = 0; // Trigger spawn grow animation
                         starveTimer = getStarveMax();
+                        activeBuffs.immune = 180;
                     }
                 }, 1000);
             }
@@ -839,9 +1124,9 @@
             }
 
             function updateLeaderboard() {
-                const playersList = [{ name: playerName + " (You)", energy: energy }];
+                const playersList = [{ name: playerName + " (You)", energy: energy, kills: player.kills, deaths: player.deaths }];
                 for (let id in otherPlayers) {
-                    playersList.push({ name: otherPlayers[id].name, energy: otherPlayers[id].energy || 0 });
+                    playersList.push({ name: otherPlayers[id].name, energy: otherPlayers[id].energy || 0, kills: otherPlayers[id].kills || 0, deaths: otherPlayers[id].deaths || 0 });
                 }
                 playersList.sort((a, b) => b.energy - a.energy);
 
@@ -850,8 +1135,12 @@
                 for (let i = 0; i < Math.min(10, playersList.length); i++) {
                     const p = playersList[i];
                     lbList.innerHTML += `<li>
-                    <span style="color: #aaa">${i + 1}.</span>
+                    <span style="color: #aaa; font-weight: bold; width: 16px;">${i + 1}.</span>
                     <span class="lb-name">${p.name || 'Unknown'}</span>
+                    <div class="lb-kd">
+                        <span class="lb-badge lb-k">⚔️ ${p.kills}</span>
+                        <span class="lb-badge lb-d">💀 ${p.deaths}</span>
+                    </div>
                     <span class="lb-score">${Math.floor(p.energy)}</span>
                 </li>`;
                 }
@@ -909,6 +1198,23 @@
                 }
             }
 
+            // Spawn a Bot
+            function spawnBot() {
+                const newBot = {
+                    id: 'bot_' + crypto.randomUUID(),
+                    x: Math.random() * worldSize,
+                    y: Math.random() * worldSize,
+                    radius: 15,
+                    color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+                    name: 'Bot' + Math.floor(Math.random() * 1000),
+                    energy: Math.random() * 50 + 10,
+                    targetX: 0,
+                    targetY: 0,
+                    angle: 0
+                };
+                bots.push(newBot);
+            }
+
             // Create Explosion Particles
             function createExplosion(x, y, color) {
                 for (let i = 0; i < 5; i++) {
@@ -938,6 +1244,7 @@
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
                 if (!isDead && !inMenu) {
+                    peakEnergy = Math.max(peakEnergy, energy);
                     if (activeBuffs.speed > 0) activeBuffs.speed--;
                     if (activeBuffs.magnet > 0) activeBuffs.magnet--;
                     if (activeBuffs.immune > 0) activeBuffs.immune--;
@@ -952,6 +1259,15 @@
 
                 effectiveSpeed = player.speed + (activeBuffs.speed > 0 ? 0.015 : 0);
                 effectiveMagnet = player.magnet + (activeBuffs.magnet > 0 ? 250 : 0);
+
+                if (typeof window.animMagnet === 'undefined') window.animMagnet = effectiveMagnet;
+                if (typeof window.lastMagnetUpdateFrame === 'undefined') window.lastMagnetUpdateFrame = 0;
+
+                if (Math.abs(effectiveMagnet - window.animMagnet) > 0.5) {
+                    window.lastMagnetUpdateFrame = frameCount;
+                }
+
+                window.animMagnet += (effectiveMagnet - window.animMagnet) * 0.1;
 
                 let screenMin = Math.min(canvas.width, canvas.height);
                 let targetZoom = Math.min(1.0, (screenMin * 0.4) / effectiveMagnet);
@@ -1058,10 +1374,57 @@
 
                     // Draw Player Magnet Radius
                     ctx.beginPath();
-                    ctx.arc(player.x - camera.x, player.y - camera.y, effectiveMagnet, 0, Math.PI * 2);
-                    ctx.strokeStyle = 'rgba(0, 255, 204, 0.1)';
+                    ctx.arc(player.x - camera.x, player.y - camera.y, window.animMagnet, 0, Math.PI * 2);
+                    let magnetAlpha = 0.1;
+                    if (frameCount - window.lastMagnetUpdateFrame < 180) {
+                        magnetAlpha = 0.1 + 0.1 * Math.sin(frameCount * 0.1);
+                    }
+                    ctx.strokeStyle = `rgba(0, 255, 204, ${magnetAlpha})`;
                     ctx.lineWidth = 2;
                     ctx.stroke();
+                    // Speed Boost Trail Logic
+                    if (typeof window.playerTrail === 'undefined') window.playerTrail = [];
+                    let targetX = player.x - Math.cos(player.angle || 0) * player.radius * 0.8;
+                    let targetY = player.y - Math.sin(player.angle || 0) * player.radius * 0.8;
+
+                    if (activeBuffs.speed > 0) {
+                        let numSegments = 12;
+                        while (window.playerTrail.length < numSegments) {
+                            window.playerTrail.push({ x: targetX, y: targetY });
+                        }
+                    } else if (window.playerTrail.length > 0) {
+                        window.playerTrail.pop(); // shrink from tail to fade out
+                        if (window.playerTrail.length > 0) window.playerTrail.pop();
+                    }
+
+                    // Snake interpolation for delay effect
+                    for (let i = 0; i < window.playerTrail.length; i++) {
+                        let pt = window.playerTrail[i];
+                        pt.x += (targetX - pt.x) * 0.35; // delay factor
+                        pt.y += (targetY - pt.y) * 0.35;
+                        targetX = pt.x;
+                        targetY = pt.y;
+                    }
+
+                    // Draw Player Trail
+                    for (let i = 0; i < window.playerTrail.length; i++) {
+                        let pt = window.playerTrail[i];
+                        let revIdx = window.playerTrail.length - 1 - i;
+                        let alpha = (revIdx / window.playerTrail.length) * 0.5;
+                        let r = player.radius * (revIdx / window.playerTrail.length);
+
+                        ctx.beginPath();
+                        ctx.arc(pt.x - camera.x, pt.y - camera.y, r * 0.8, 0, Math.PI * 2);
+                        ctx.globalAlpha = alpha;
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fill();
+                        ctx.beginPath();
+                        ctx.arc(pt.x - camera.x, pt.y - camera.y, r, 0, Math.PI * 2);
+                        ctx.globalAlpha = alpha * 0.5;
+                        ctx.fillStyle = playerColor;
+                        ctx.fill();
+                    }
+                    ctx.globalAlpha = 1.0;
 
                     // Draw Player
                     ctx.beginPath();
@@ -1121,7 +1484,7 @@
                         channel.send({
                             type: 'broadcast',
                             event: 'pos',
-                            payload: { id: playerId, x: player.x, y: player.y, radius: player.radius, color: playerColor, name: playerName, energy: energy, magnet: effectiveMagnet, angle: player.angle, starve: starveTimer, starveMax: getStarveMax() }
+                            payload: { id: playerId, x: player.x, y: player.y, radius: player.radius, color: playerColor, name: playerName, energy: energy, magnet: effectiveMagnet, angle: player.angle, starve: starveTimer, starveMax: getStarveMax(), kills: player.kills, deaths: player.deaths, speedBuffActive: activeBuffs.speed > 0 }
                         });
                         lastBroadcast = now;
                     }
@@ -1150,6 +1513,14 @@
                     p.x += (p.targetX - p.x) * 0.2;
                     p.y += (p.targetY - p.y) * 0.2;
 
+                    if (typeof p.animMagnet === 'undefined') p.animMagnet = p.magnet || 10;
+                    if (typeof p.lastMagnetUpdateFrame === 'undefined') p.lastMagnetUpdateFrame = 0;
+
+                    if (Math.abs((p.magnet || 10) - p.animMagnet) > 0.5) {
+                        p.lastMagnetUpdateFrame = frameCount;
+                    }
+                    p.animMagnet += ((p.magnet || 10) - p.animMagnet) * 0.1;
+
                     // PvP Collision Check
                     if (!isDead && !inMenu) {
                         let dx = p.x - player.x;
@@ -1160,6 +1531,7 @@
                             if (energy > (p.energy || 0)) {
                                 // We eat them!
                                 energy += (p.energy || 0);
+                                player.kills++;
                                 createExplosion(p.x, p.y, p.color);
                                 // Grant kill immunity so their kill event doesn't kill us back
                                 killImmunity.add(id);
@@ -1178,10 +1550,58 @@
 
                     // Render remote player magnet
                     ctx.beginPath();
-                    ctx.arc(p.x - camera.x, p.y - camera.y, p.magnet || 10, 0, Math.PI * 2);
-                    ctx.strokeStyle = 'rgba(0, 255, 204, 0.1)';
+                    ctx.arc(p.x - camera.x, p.y - camera.y, p.animMagnet, 0, Math.PI * 2);
+                    let pMagnetAlpha = 0.1;
+                    if (frameCount - p.lastMagnetUpdateFrame < 180) {
+                        pMagnetAlpha = 0.1 + 0.1 * Math.sin(frameCount * 0.1);
+                    }
+                    ctx.strokeStyle = `rgba(0, 255, 204, ${pMagnetAlpha})`;
                     ctx.lineWidth = 2;
                     ctx.stroke();
+
+                    // Remote player trail logic
+                    if (typeof p.trail === 'undefined') p.trail = [];
+                    let pTargetX = p.x - Math.cos(p.angle || 0) * p.radius * 0.8;
+                    let pTargetY = p.y - Math.sin(p.angle || 0) * p.radius * 0.8;
+
+                    if (p.speedBuffActive) {
+                        let numSegments = 12;
+                        while (p.trail.length < numSegments) {
+                            p.trail.push({ x: pTargetX, y: pTargetY });
+                        }
+                    } else if (p.trail.length > 0) {
+                        p.trail.pop();
+                        if (p.trail.length > 0) p.trail.pop();
+                    }
+
+                    // Snake interpolation for delay effect
+                    for (let i = 0; i < p.trail.length; i++) {
+                        let pt = p.trail[i];
+                        pt.x += (pTargetX - pt.x) * 0.35;
+                        pt.y += (pTargetY - pt.y) * 0.35;
+                        pTargetX = pt.x;
+                        pTargetY = pt.y;
+                    }
+
+                    // Draw remote Player Trail
+                    for (let i = 0; i < p.trail.length; i++) {
+                        let pt = p.trail[i];
+                        let revIdx = p.trail.length - 1 - i;
+                        let alpha = (revIdx / p.trail.length) * 0.5;
+                        let r = p.radius * (revIdx / p.trail.length);
+
+                        ctx.beginPath();
+                        ctx.arc(pt.x - camera.x, pt.y - camera.y, r * 0.8, 0, Math.PI * 2);
+                        ctx.globalAlpha = alpha;
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fill();
+                        ctx.beginPath();
+                        ctx.arc(pt.x - camera.x, pt.y - camera.y, r, 0, Math.PI * 2);
+                        ctx.globalAlpha = alpha * 0.5;
+                        ctx.fillStyle = p.color;
+                        ctx.fill();
+                    }
+                    ctx.globalAlpha = 1.0;
 
                     // Render remote player
                     ctx.beginPath();
@@ -1228,6 +1648,78 @@
                         ctx.closePath();
                         ctx.fillStyle = rTimerColor;
                         ctx.fill();
+                    }
+                }
+
+                // Update and Draw Bots
+                if (isBot && !inMenu) {
+                    for (let i = bots.length - 1; i >= 0; i--) {
+                        let bot = bots[i];
+                        bot.radius = 15 + Math.sqrt(bot.energy) * 1.5;
+
+                        // Very simple Bot AI: Random wandering + drift towards center if too far
+                        if (Math.random() < 0.02) {
+                            bot.targetX = bot.x + (Math.random() - 0.5) * 400;
+                            bot.targetY = bot.y + (Math.random() - 0.5) * 400;
+                            // Keep in bounds
+                            bot.targetX = Math.max(0, Math.min(bot.targetX, worldSize));
+                            bot.targetY = Math.max(0, Math.min(bot.targetY, worldSize));
+                        }
+
+                        let dx = bot.targetX - bot.x;
+                        let dy = bot.targetY - bot.y;
+                        let dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist > 0) {
+                            bot.x += (dx / dist) * 1.5;
+                            bot.y += (dy / dist) * 1.5;
+                            bot.angle = Math.atan2(dy, dx);
+                        }
+
+                        // Bot eats orbs
+                        for (let j = orbs.length - 1; j >= 0; j--) {
+                            let orb = orbs[j];
+                            let odx = bot.x - orb.x;
+                            let ody = bot.y - orb.y;
+                            if (Math.sqrt(odx * odx + ody * ody) < bot.radius + orb.radius) {
+                                bot.energy += orb.value || 1;
+                                orbs.splice(j, 1);
+                                createExplosion(orb.x, orb.y, orb.color);
+                            }
+                        }
+
+                        // Bot vs Player collision
+                        if (!isDead) {
+                            let pdx = bot.x - player.x;
+                            let pdy = bot.y - player.y;
+                            let pDist = Math.sqrt(pdx * pdx + pdy * pdy);
+                            if (pDist < bot.radius + player.radius) {
+                                if (energy > bot.energy) {
+                                    // Player eats bot
+                                    energy += bot.energy;
+                                    player.kills++;
+                                    createExplosion(bot.x, bot.y, bot.color);
+                                    bots.splice(i, 1);
+                                    spawnBot();
+                                    continue;
+                                } else if (bot.energy > energy && activeBuffs.immune <= 0) {
+                                    // Bot eats player
+                                    bot.energy += energy;
+                                    die();
+                                }
+                            }
+                        }
+
+                        // Draw Bot
+                        ctx.beginPath();
+                        ctx.arc(bot.x - camera.x, bot.y - camera.y, bot.radius, 0, Math.PI * 2);
+                        ctx.fillStyle = bot.color;
+                        ctx.fill();
+
+                        // Draw Bot Name
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                        ctx.font = '12px "Segoe UI"';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(bot.name, bot.x - camera.x, bot.y - camera.y - bot.radius - 10);
                     }
                 }
 
@@ -1339,22 +1831,212 @@
 
                 ctx.restore();
 
-                if (isDead) {
-                    ctx.fillStyle = 'rgba(255, 0, 85, 0.8)';
-                    ctx.font = 'bold 48px "Segoe UI"';
-                    ctx.textAlign = 'center';
-                    ctx.fillText("YOU DIED", canvas.width / 2, canvas.height / 2 - 20);
+                // Draw Off-screen pointers
+                if (!inMenu && !isDead) {
+                    const drawPointer = (entity) => {
+                        let screenX = (entity.x - camera.x - canvas.width / 2) * currentZoom + canvas.width / 2;
+                        let screenY = (entity.y - camera.y - canvas.height / 2) * currentZoom + canvas.height / 2;
 
-                    ctx.fillStyle = '#fff';
-                    ctx.font = '24px "Segoe UI"';
-                    ctx.fillText(`Respawning in ${respawnTimer}...`, canvas.width / 2, canvas.height / 2 + 20);
+                        const padding = 20;
+                        const isOffScreen = screenX < padding || screenX > canvas.width - padding || screenY < padding || screenY > canvas.height - padding;
+
+                        if (isOffScreen) {
+                            let dx = screenX - canvas.width / 2;
+                            let dy = screenY - canvas.height / 2;
+                            let angle = Math.atan2(dy, dx);
+
+                            // Clamp to edge
+                            let edgeX = canvas.width / 2;
+                            let edgeY = canvas.height / 2;
+                            let m = dy / dx;
+
+                            if (Math.abs(m) > (canvas.height / 2 - padding) / (canvas.width / 2 - padding)) {
+                                // Intersects top or bottom
+                                edgeY = dy > 0 ? canvas.height - padding : padding;
+                                edgeX = canvas.width / 2 + (edgeY - canvas.height / 2) / m;
+                            } else {
+                                // Intersects left or right
+                                edgeX = dx > 0 ? canvas.width - padding : padding;
+                                edgeY = canvas.height / 2 + (edgeX - canvas.width / 2) * m;
+                            }
+
+                            ctx.save();
+                            ctx.translate(edgeX, edgeY);
+                            ctx.rotate(angle);
+                            ctx.beginPath();
+                            ctx.moveTo(10, 0);
+                            ctx.lineTo(-10, -8);
+                            ctx.lineTo(-10, 8);
+                            ctx.closePath();
+                            ctx.fillStyle = entity.color;
+                            ctx.fill();
+                            ctx.restore();
+                        }
+                    };
+
+                    for (let id in otherPlayers) {
+                        drawPointer(otherPlayers[id]);
+                    }
+                    if (isBot) {
+                        for (let i = 0; i < bots.length; i++) {
+                            drawPointer(bots[i]);
+                        }
+                    }
                 }
+
+                // Death screen is now an HTML overlay
 
                 // Keep UI updated for button states
                 if (frameCount % 10 === 0) updateUI();
 
                 requestAnimationFrame(loop);
             }
+
+            let currentUser = null;
+
+            async function checkSession() {
+                if (!supabaseClient) return;
+                const { data, error } = await supabaseClient.auth.getSession();
+                if (data && data.session) {
+                    currentUser = data.session.user;
+                    const { data: profile } = await supabaseClient.from('global_leaderboard').select('username').eq('id', currentUser.id).single();
+                    if (profile) {
+                        playerName = profile.username;
+                        document.getElementById('logged-in-user').innerText = playerName;
+                        document.getElementById('logged-in-text').classList.remove('hidden');
+                        document.getElementById('btn-logout').classList.remove('hidden');
+                        document.getElementById('btn-show-login').classList.add('hidden');
+                        document.getElementById('btn-show-signup').classList.add('hidden');
+                        document.getElementById('player-name-input').value = playerName;
+                        document.getElementById('player-name-input').classList.add('hidden');
+                    }
+                }
+            }
+
+            async function fetchGlobalLeaderboard() {
+                if (!supabaseClient) return;
+                const { data, error } = await supabaseClient.from('global_leaderboard').select('username, max_energy').order('max_energy', { ascending: false }).limit(10);
+                const list = document.getElementById('global-leaderboard-list');
+                list.innerHTML = '';
+                if (data && data.length > 0) {
+                    data.forEach((p, i) => {
+                        list.innerHTML += `<li>
+                            <span class="glb-name">${i + 1}. ${p.username}</span>
+                            <span class="glb-score">${Math.floor(p.max_energy)}</span>
+                        </li>`;
+                    });
+                } else {
+                    list.innerHTML = '<li>No scores yet!</li>';
+                }
+            }
+
+            // Auth Event Listeners
+            document.getElementById('btn-show-login').addEventListener('click', () => {
+                document.getElementById('login-modal').classList.remove('hidden');
+            });
+            document.getElementById('btn-cancel-login').addEventListener('click', () => {
+                document.getElementById('login-modal').classList.add('hidden');
+                document.getElementById('login-error').innerText = '';
+            });
+            document.getElementById('btn-show-signup').addEventListener('click', () => {
+                document.getElementById('signup-modal').classList.remove('hidden');
+            });
+            document.getElementById('btn-cancel-signup').addEventListener('click', () => {
+                document.getElementById('signup-modal').classList.add('hidden');
+                document.getElementById('signup-error').innerText = '';
+            });
+
+            // Leaderboard Modal Listeners
+            document.getElementById('btn-show-leaderboard').addEventListener('click', () => {
+                document.getElementById('leaderboard-modal').classList.remove('hidden');
+            });
+            document.getElementById('btn-close-leaderboard').addEventListener('click', () => {
+                document.getElementById('leaderboard-modal').classList.add('hidden');
+            });
+
+            document.getElementById('btn-submit-signup').addEventListener('click', async () => {
+                const email = document.getElementById('signup-email').value;
+                const password = document.getElementById('signup-password').value;
+                const username = document.getElementById('signup-username').value;
+                if (!username || !email || !password) return;
+
+                const { data, error } = await supabaseClient.auth.signUp({ email, password });
+                if (error) {
+                    document.getElementById('signup-error').innerText = error.message;
+                } else {
+                    if (data.user) {
+                        await supabaseClient.from('global_leaderboard').insert([{ id: data.user.id, username: username, max_energy: 0 }]);
+                        document.getElementById('signup-modal').classList.add('hidden');
+                        checkSession();
+                    }
+                }
+            });
+
+            document.getElementById('btn-submit-login').addEventListener('click', async () => {
+                const email = document.getElementById('login-email').value;
+                const password = document.getElementById('login-password').value;
+                if (!email || !password) return;
+
+                const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                if (error) {
+                    document.getElementById('login-error').innerText = error.message;
+                } else {
+                    document.getElementById('login-modal').classList.add('hidden');
+                    checkSession();
+                }
+            });
+
+            document.getElementById('btn-logout').addEventListener('click', async () => {
+                await supabaseClient.auth.signOut();
+                currentUser = null;
+                document.getElementById('logged-in-text').classList.add('hidden');
+                document.getElementById('btn-logout').classList.add('hidden');
+                document.getElementById('btn-show-login').classList.remove('hidden');
+                document.getElementById('btn-show-signup').classList.remove('hidden');
+                document.getElementById('player-name-input').classList.remove('hidden');
+                document.getElementById('player-name-input').value = `Player${Math.floor(Math.random() * 9000) + 1000}`;
+            });
+
+            let respawnIntervalId = null;
+
+            function returnToHome() {
+                // Cancel respawn timer
+                if (respawnIntervalId) {
+                    clearInterval(respawnIntervalId);
+                    respawnIntervalId = null;
+                }
+                isDead = false;
+                document.getElementById('death-overlay').classList.remove('active');
+
+                // Reset player state
+                player.x = worldSize / 2;
+                player.y = worldSize / 2;
+                player.radius = 15;
+                energy = 0;
+                peakEnergy = 0;
+                player.kills = 0;
+                player.deaths = 0;
+                upgrades.speed.lvl = 1; upgrades.speed.cost = 10; player.speed = 0.01;
+                upgrades.magnet.lvl = 1; upgrades.magnet.cost = 25; player.magnet = isMobile ? 40 : 10;
+                upgrades.mult.lvl = 1; upgrades.mult.cost = 100; player.mult = 1;
+                activeBuffs.speed = 0;
+                activeBuffs.magnet = 0;
+                activeBuffs.immune = 0;
+                starveTimer = getStarveMax();
+                window.spawnScale = 0;
+
+                // Show main menu, hide game UI
+                inMenu = true;
+                document.getElementById('main-menu').classList.add('active');
+                document.getElementById('hud').classList.add('hidden');
+                document.getElementById('leaderboard').classList.add('hidden');
+                document.getElementById('shop-modal').classList.add('hidden');
+
+                fetchGlobalLeaderboard();
+                updateUI();
+            }
+
+            document.getElementById('btn-return-home').addEventListener('click', returnToHome);
 
             document.getElementById('player-name-input').value = playerName;
 
@@ -1367,6 +2049,8 @@
                 document.getElementById('leaderboard').classList.remove('hidden');
 
                 inMenu = false;
+                activeBuffs.immune = 180;
+                window.spawnScale = 0;
 
                 if (channel) channel.track({ online_at: new Date().toISOString() });
             });
@@ -1374,7 +2058,17 @@
             // Start game
             window.spawnScale = 0;
             for (let i = 0; i < 50; i++) spawnOrb(); // Initial orbs
+            if (isBot) {
+                for (let i = 0; i < botCount; i++) {
+                    spawnBot();
+                }
+            }
             updateUI();
+
+            // Init Auth & Leaderboard
+            checkSession();
+            fetchGlobalLeaderboard();
+
             loop();
 
         })();
