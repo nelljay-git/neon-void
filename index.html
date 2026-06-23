@@ -428,40 +428,7 @@
             display: none !important;
         }
 
-        @media (max-width: 600px) {
-            #hud {
-                top: 10px;
-                left: 10px;
-                right: 10px;
-                justify-content: space-between;
-                gap: 10px;
-            }
 
-            #leaderboard {
-                top: 70px;
-                right: 10px;
-                width: 150px;
-                padding: 10px;
-            }
-
-            .hud-stat {
-                padding: 8px 12px;
-            }
-
-            .hud-value {
-                font-size: 18px;
-            }
-
-            #open-shop-btn,
-            #leave-game-btn {
-                padding: 10px 20px;
-                font-size: 14px;
-            }
-
-            .shop-content {
-                padding: 20px;
-            }
-        }
 
         .subtle-btn {
             background: transparent;
@@ -673,6 +640,66 @@
 
             100% {
                 transform: translate(-50%, -50%) scale(1.1);
+            }
+
+
+
+
+        }
+
+        @media screen and (max-width: 728px) {
+
+            #hud {
+                position: fixed;
+                top: 5px;
+                left: 5px;
+                right: 5px;
+                display: flex;
+                justify-content: center;
+                flex-wrap: wrap;
+                gap: 5px;
+            }
+
+            #leaderboard {
+                position: fixed;
+                top: 90px;
+                right: 5px;
+                width: 140px;
+                padding: 8px;
+                box-sizing: border-box;
+            }
+
+            .hud-stat {
+                padding: 4px 8px;
+            }
+
+            .hud-label {
+                font-size: 10px;
+                margin-bottom: 2px;
+            }
+
+            .hud-value {
+                font-size: 14px;
+            }
+
+            #open-shop-btn,
+            #leave-game-btn {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+
+            #match-timer {
+                position: fixed;
+                top: 60px;
+                bottom: auto;
+                height: auto;
+                font-size: 18px;
+                padding: 6px 16px;
+            }
+
+            .shop-content {
+                padding: 20px;
+                box-sizing: border-box;
             }
         }
     </style>
