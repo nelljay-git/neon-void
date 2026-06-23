@@ -115,6 +115,22 @@
             transform: scale(1.05);
         }
 
+        #leave-game-btn {
+            background: #cc0033;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        #leave-game-btn:hover {
+            transform: scale(1.05);
+        }
+
         #shop-modal {
             position: absolute;
             top: 0;
@@ -436,7 +452,8 @@
                 font-size: 18px;
             }
 
-            #open-shop-btn {
+            #open-shop-btn,
+            #leave-game-btn {
                 padding: 10px 20px;
                 font-size: 14px;
             }
@@ -610,12 +627,63 @@
             border-color: #00ffcc;
             color: #00ffcc;
         }
+
+        #match-timer {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #ff0044;
+            padding: 10px 20px;
+            border-radius: 12px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #fff;
+            text-shadow: 0 0 10px #ff0044;
+            z-index: 20;
+            transition: opacity 0.3s;
+        }
+
+        #zone-warning {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 48px;
+            color: #ff0044;
+            font-weight: bold;
+            text-shadow: 0 0 20px #ff0044;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 50;
+            transition: opacity 0.2s;
+            text-align: center;
+        }
+
+        #zone-warning.active {
+            opacity: 1;
+            animation: pulse-warning 1s infinite alternate;
+        }
+
+        @keyframes pulse-warning {
+            0% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+
+            100% {
+                transform: translate(-50%, -50%) scale(1.1);
+            }
+        }
     </style>
 </head>
 
 <body>
 
     <canvas id="gameCanvas"></canvas>
+
+    <div id="match-timer" class="hidden">12:00</div>
+    <div id="zone-warning">OUTSIDE SAFE ZONE<br><span style="font-size: 24px">TAKING DAMAGE</span></div>
 
     <div id="main-menu" class="active">
         <div class="menu-content">
@@ -681,10 +749,15 @@
             <span class="hud-value" id="hud-energy">0</span>
         </div>
         <div class="hud-stat">
+            <span class="hud-label">HIGH SCORE</span>
+            <span class="hud-value" id="hud-highscore" style="color: #ffd700;">0</span>
+        </div>
+        <div class="hud-stat">
             <span class="hud-label">MULTIPLIER</span>
             <span class="hud-value" id="hud-mult">x1</span>
         </div>
         <button id="open-shop-btn"><span id="shop-btn-text">SHOP</span><span id="shop-indicator"></span></button>
+        <button id="leave-game-btn">LEAVE</button>
     </div>
 
     <div id="leaderboard" class="hidden">
@@ -739,7 +812,7 @@
             let playerName = `Player${Math.floor(Math.random() * 9000) + 1000}`;
             const otherPlayers = {};
             let isBot = true;
-            let botCount = 5;
+            let botCount = 100;
             const bots = [];
 
             if (SUPABASE_URL !== "YOUR_SUPABASE_URL_HERE") {
@@ -783,6 +856,7 @@
                         otherPlayers[payload.id].kills = payload.kills;
                         otherPlayers[payload.id].deaths = payload.deaths;
                         otherPlayers[payload.id].speedBuffActive = payload.speedBuffActive;
+                        otherPlayers[payload.id].highscore = payload.highscore;
                     } else {
                         otherPlayers[payload.id] = {
                             x: payload.x, y: payload.y,
@@ -797,7 +871,8 @@
                             starveMax: payload.starveMax,
                             kills: payload.kills || 0,
                             deaths: payload.deaths || 0,
-                            speedBuffActive: payload.speedBuffActive || false
+                            speedBuffActive: payload.speedBuffActive || false,
+                            highscore: payload.highscore || 0
                         };
                     }
                 }).on('broadcast', { event: 'spawn_orb' }, ({ payload }) => {
@@ -823,6 +898,11 @@
                                 event: 'sync_orbs',
                                 payload: orbs
                             });
+                            channel.send({
+                                type: 'broadcast',
+                                event: 'sync_match',
+                                payload: { startTime: matchStartTime }
+                            });
                         }, Math.random() * 500);
                     }
                 }).on('broadcast', { event: 'sync_orbs' }, ({ payload }) => {
@@ -831,6 +911,10 @@
                             orbs.push(incomingOrb);
                         }
                     });
+                }).on('broadcast', { event: 'sync_match' }, ({ payload }) => {
+                    matchStartTime = payload.startTime;
+                }).on('broadcast', { event: 'match_restart' }, ({ payload }) => {
+                    restartMatch(payload.startTime);
                 }).subscribe(async (status) => {
                     if (status === 'SUBSCRIBED') {
                         // Track will be called when user hits PLAY
@@ -861,6 +945,7 @@
             // Game State
             let energy = 0;
             let peakEnergy = 0;
+            let allTimeHighScore = 0;
             const mouse = { x: canvas.width / 2, y: canvas.height / 2 };
 
             // Mobile viewport detection
@@ -917,7 +1002,7 @@
             }, { passive: false });
 
             // World Map Size
-            const worldSize = 2000;
+            const worldSize = 10000;
 
             // Player Object
             const player = {
@@ -963,17 +1048,68 @@
             let inMenu = true;
             let respawnTimer = 0;
             let starveTimer = 300; // 5 seconds at 60fps
+
+            // Safe Zone Variables
+            let matchStartTime = Date.now();
+            const matchDuration = 12 * 60 * 1000;
+            let currentSafeZoneRadius = (worldSize / 2) * Math.SQRT2;
+            let framesOutsideZone = 0;
+            let framesInsideZone = 0;
+            let zoneDamageMultiplier = 1.0;
             function getStarveMax() {
                 if (upgrades.speed.lvl >= 30 || upgrades.magnet.lvl >= 30 || upgrades.mult.lvl >= 30) {
-                    return 60; // 1 second at 60fps
+                    return 50; // 1 second at 60fps  
                 }
-                if (upgrades.speed.lvl >= 25 || upgrades.magnet.lvl >= 25 || upgrades.mult.lvl >= 25) {
-                    return 90; // 1.5 seconds at 60fps
+                if (upgrades.speed.lvl >= 20 || upgrades.magnet.lvl >= 20 || upgrades.mult.lvl >= 20) {
+                    return 70; // 1.5 seconds at 60fps   
                 }
                 if (upgrades.speed.lvl >= 15 || upgrades.magnet.lvl >= 15 || upgrades.mult.lvl >= 15) {
                     return 180; // 3 seconds at 60fps
                 }
                 return 300; // 5 seconds at 60fps
+            }
+
+            function restartMatch(newStartTime) {
+                matchStartTime = newStartTime || Date.now();
+                currentSafeZoneRadius = (worldSize / 2) * Math.SQRT2;
+                framesOutsideZone = 0;
+                framesInsideZone = 0;
+                zoneDamageMultiplier = 1.0;
+
+                energy = 0;
+                peakEnergy = 0;
+                player.kills = 0;
+                player.deaths = 0;
+                player.x = worldSize / 2;
+                player.y = worldSize / 2;
+                player.radius = 15;
+                isDead = false;
+                document.getElementById('death-overlay').classList.remove('active');
+                if (respawnIntervalId) {
+                    clearInterval(respawnIntervalId);
+                    respawnIntervalId = null;
+                }
+
+                upgrades.speed.lvl = 1; upgrades.speed.cost = 10; player.speed = 0.01;
+                upgrades.magnet.lvl = 1; upgrades.magnet.cost = 25; player.magnet = isMobile ? 40 : 10;
+                upgrades.mult.lvl = 1; upgrades.mult.cost = 100; player.mult = 1;
+                activeBuffs.speed = 0;
+                activeBuffs.magnet = 0;
+                activeBuffs.immune = 180;
+                starveTimer = getStarveMax();
+
+                orbs.length = 0;
+                for (let i = 0; i < 50; i++) spawnOrb();
+
+                if (isBot) {
+                    bots.length = 0;
+                    for (let i = 0; i < botCount; i++) {
+                        spawnBot();
+                    }
+                }
+
+                updateUI();
+                updateLeaderboard();
             }
 
             function die() {
@@ -1050,8 +1186,12 @@
                         respawnIntervalId = null;
                         isDead = false;
                         document.getElementById('death-overlay').classList.remove('active');
-                        player.x = Math.random() * worldSize;
-                        player.y = Math.random() * worldSize;
+                        // Spawn inside the safe zone
+                        let spawnRadius = Math.max(50, currentSafeZoneRadius * 0.8);
+                        let spawnAngle = Math.random() * Math.PI * 2;
+                        let spawnDist = Math.random() * spawnRadius;
+                        player.x = (worldSize / 2) + Math.cos(spawnAngle) * spawnDist;
+                        player.y = (worldSize / 2) + Math.sin(spawnAngle) * spawnDist;
                         player.radius = 0;
                         window.spawnScale = 0; // Trigger spawn grow animation
                         starveTimer = getStarveMax();
@@ -1093,16 +1233,31 @@
             document.getElementById('btn-magnet').addEventListener('click', () => buyUpgrade('magnet'));
             document.getElementById('btn-mult').addEventListener('click', () => buyUpgrade('mult'));
 
+            window.addEventListener('keydown', (e) => {
+                if ((e.key === 'e' || e.key === 'E') && !inMenu && !isDead) {
+                    if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+                    toggleShop();
+                }
+            });
+
+            function formatNumber(num) {
+                if (num >= 1e9) return (num / 1e9).toFixed(1).replace(/\.0$/, '') + 'b';
+                if (num >= 1e6) return (num / 1e6).toFixed(1).replace(/\.0$/, '') + 'm';
+                if (num >= 1e3) return (num / 1e3).toFixed(1).replace(/\.0$/, '') + 'k';
+                return Math.floor(num).toString();
+            }
+
             function updateUI() {
-                document.getElementById('hud-energy').innerText = Math.floor(energy);
-                document.getElementById('hud-mult').innerText = `x${player.mult}`;
+                document.getElementById('hud-energy').innerText = formatNumber(energy);
+                document.getElementById('hud-highscore').innerText = formatNumber(allTimeHighScore);
+                document.getElementById('hud-mult').innerText = `x${formatNumber(player.mult)}`;
 
                 let anyAvailable = false;
 
                 for (let key in upgrades) {
                     const upg = upgrades[key];
                     const btn = document.getElementById(`btn-${key}`);
-                    document.getElementById(`cost-${key}`).innerText = upg.lvl >= upg.max ? "MAX" : upg.cost;
+                    document.getElementById(`cost-${key}`).innerText = upg.lvl >= upg.max ? "MAX" : formatNumber(upg.cost);
                     document.getElementById(`lvl-${key}`).innerText = upg.lvl;
 
                     if (energy < upg.cost || upg.lvl >= upg.max) {
@@ -1124,11 +1279,11 @@
             }
 
             function updateLeaderboard() {
-                const playersList = [{ name: playerName + " (You)", energy: energy, kills: player.kills, deaths: player.deaths }];
+                const playersList = [{ name: playerName + " (You)", energy: energy, kills: player.kills, deaths: player.deaths, highscore: allTimeHighScore }];
                 for (let id in otherPlayers) {
-                    playersList.push({ name: otherPlayers[id].name, energy: otherPlayers[id].energy || 0, kills: otherPlayers[id].kills || 0, deaths: otherPlayers[id].deaths || 0 });
+                    playersList.push({ name: otherPlayers[id].name, energy: otherPlayers[id].energy || 0, kills: otherPlayers[id].kills || 0, deaths: otherPlayers[id].deaths || 0, highscore: otherPlayers[id].highscore || 0 });
                 }
-                playersList.sort((a, b) => b.energy - a.energy);
+                playersList.sort((a, b) => b.highscore - a.highscore);
 
                 const lbList = document.getElementById('leaderboard-list');
                 lbList.innerHTML = '';
@@ -1141,7 +1296,7 @@
                         <span class="lb-badge lb-k">⚔️ ${p.kills}</span>
                         <span class="lb-badge lb-d">💀 ${p.deaths}</span>
                     </div>
-                    <span class="lb-score">${Math.floor(p.energy)}</span>
+                    <span class="lb-score">${formatNumber(p.highscore)}</span>
                 </li>`;
                 }
             }
@@ -1239,12 +1394,34 @@
             let effectiveMagnet = 10;
 
             function loop() {
+                // Match Timer & Safe Zone updates
+                let elapsedTime = Date.now() - matchStartTime;
+                if (!inMenu && elapsedTime >= matchDuration) {
+                    restartMatch();
+                    elapsedTime = 0;
+                }
+
+                let shrinkDuration = matchDuration - 10000; // 10 seconds advance
+                currentSafeZoneRadius = Math.max(0, ((worldSize / 2) * Math.SQRT2) * (1 - elapsedTime / shrinkDuration));
+
+                if (!inMenu) {
+                    let timeLeft = Math.max(0, matchDuration - elapsedTime);
+                    let minutes = Math.floor(timeLeft / 60000);
+                    let seconds = Math.floor((timeLeft % 60000) / 1000);
+                    document.getElementById('match-timer').innerText = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+                    document.getElementById('match-timer').classList.remove('hidden');
+                } else {
+                    document.getElementById('match-timer').classList.add('hidden');
+                    document.getElementById('zone-warning').classList.remove('active');
+                }
+
                 // Clear screen with solid background for infinite canvas
                 ctx.fillStyle = '#0f0f13';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
                 if (!isDead && !inMenu) {
                     peakEnergy = Math.max(peakEnergy, energy);
+                    allTimeHighScore = Math.max(allTimeHighScore, energy);
                     if (activeBuffs.speed > 0) activeBuffs.speed--;
                     if (activeBuffs.magnet > 0) activeBuffs.magnet--;
                     if (activeBuffs.immune > 0) activeBuffs.immune--;
@@ -1309,6 +1486,25 @@
                 ctx.strokeStyle = 'rgba(255, 0, 85, 0.5)';
                 ctx.lineWidth = 5;
                 ctx.strokeRect(-camera.x, -camera.y, worldSize, worldSize);
+
+                // Draw Safe Zone
+                if (!inMenu) {
+                    // Fill red outside the Safe Zone
+                    ctx.beginPath();
+                    // Outer bounds covering the screen
+                    ctx.rect(-camera.x - 2000, -camera.y - 2000, worldSize + 4000, worldSize + 4000);
+                    // Inner hole
+                    ctx.arc((worldSize / 2) - camera.x, (worldSize / 2) - camera.y, currentSafeZoneRadius, 0, Math.PI * 2, true); // true for counter-clockwise
+                    ctx.fillStyle = 'rgba(255, 0, 68, 0.15)'; // Faint red
+                    ctx.fill();
+
+                    // Cyan Border
+                    ctx.beginPath();
+                    ctx.arc((worldSize / 2) - camera.x, (worldSize / 2) - camera.y, currentSafeZoneRadius, 0, Math.PI * 2);
+                    ctx.strokeStyle = 'rgba(0, 255, 204, 0.8)';
+                    ctx.lineWidth = 8;
+                    ctx.stroke();
+                }
 
                 frameCount++;
                 let currentSpawnRate = spawnRate * (1 + Object.keys(otherPlayers).length);
@@ -1484,10 +1680,40 @@
                         channel.send({
                             type: 'broadcast',
                             event: 'pos',
-                            payload: { id: playerId, x: player.x, y: player.y, radius: player.radius, color: playerColor, name: playerName, energy: energy, magnet: effectiveMagnet, angle: player.angle, starve: starveTimer, starveMax: getStarveMax(), kills: player.kills, deaths: player.deaths, speedBuffActive: activeBuffs.speed > 0 }
+                            payload: { id: playerId, x: player.x, y: player.y, radius: player.radius, color: playerColor, name: playerName, energy: energy, magnet: effectiveMagnet, angle: player.angle, starve: starveTimer, starveMax: getStarveMax(), kills: player.kills, deaths: player.deaths, speedBuffActive: activeBuffs.speed > 0, highscore: allTimeHighScore }
                         });
                         lastBroadcast = now;
                     }
+
+                    // --- Safe Zone Damage Logic ---
+                    let distToCenter = Math.hypot(player.x - (worldSize / 2), player.y - (worldSize / 2));
+                    if (distToCenter > currentSafeZoneRadius) {
+                        framesInsideZone = 0;
+                        framesOutsideZone++;
+                        document.getElementById('zone-warning').classList.add('active');
+
+                        if (framesOutsideZone % 60 === 0) {
+                            // Take damage
+                            let damage = Math.max(1, energy * (zoneDamageMultiplier / 100));
+                            energy -= damage;
+                            createExplosion(player.x, player.y, '#ff0044'); // Damage FX
+
+                            if (energy <= 0) {
+                                energy = 0; // Ensure it doesn't go negative
+                                die();
+                            }
+                            zoneDamageMultiplier += (currentSafeZoneRadius <= 0) ? 2.5 : 1.2;
+                            updateUI();
+                        }
+                    } else {
+                        framesInsideZone++;
+                        document.getElementById('zone-warning').classList.remove('active');
+                        if (framesInsideZone >= 60) {
+                            zoneDamageMultiplier = 1.0;
+                            framesOutsideZone = 0;
+                        }
+                    }
+                    // --- End Safe Zone Damage Logic ---
 
                     // Starvation timer
                     if (activeBuffs.immune <= 0) {
@@ -1840,7 +2066,13 @@
                         const padding = 20;
                         const isOffScreen = screenX < padding || screenX > canvas.width - padding || screenY < padding || screenY > canvas.height - padding;
 
-                        if (isOffScreen) {
+                        let worldDx = entity.x - player.x;
+                        let worldDy = entity.y - player.y;
+                        let worldDist = Math.sqrt(worldDx * worldDx + worldDy * worldDy);
+                        let viewRadius = Math.max(canvas.width, canvas.height) / currentZoom;
+
+                        // Only show the pointer if they are relatively near (within 1.2x of the screen view radius)
+                        if (isOffScreen && worldDist < viewRadius * 1.2) {
                             let dx = screenX - canvas.width / 2;
                             let dy = screenY - canvas.height / 2;
                             let angle = Math.atan2(dy, dx);
@@ -1922,7 +2154,7 @@
                     data.forEach((p, i) => {
                         list.innerHTML += `<li>
                             <span class="glb-name">${i + 1}. ${p.username}</span>
-                            <span class="glb-score">${Math.floor(p.max_energy)}</span>
+                            <span class="glb-score">${formatNumber(p.max_energy)}</span>
                         </li>`;
                     });
                 } else {
@@ -2037,6 +2269,7 @@
             }
 
             document.getElementById('btn-return-home').addEventListener('click', returnToHome);
+            document.getElementById('leave-game-btn').addEventListener('click', returnToHome);
 
             document.getElementById('player-name-input').value = playerName;
 
